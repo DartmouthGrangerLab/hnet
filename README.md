@@ -28,13 +28,15 @@ types of components:
 - data structures
     - ```ComponentBank``` - stores one complete component bank
     - ```Dataset``` - loads whichever dataset you request, in a storage container for easy use
+    - ```EDG``` - edge state enum
+    - ```GRF``` - graph type enum
     - ```Model``` - stores a set of component banks, and the connections amongst them
 - ```Encode()``` - matches components against new datapoints (often calls ```Energy()```)
 - ```Energy()``` - computes the energy of each datapoint using each composite Hamiltonian
 - ```Main()``` - code entry point; loads the data, trains, tests, prints output / figures
 
 ## Running the Code
-Dependencies: none (designed for matlab version r2022a)
+Dependencies: matlab (designed for matlab version r2022a), python 3
 
 Setup:
 1) Pull (or download) hnet from https://github.com/DartmouthGrangerLab/hnet
