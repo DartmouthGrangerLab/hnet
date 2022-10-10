@@ -1,4 +1,7 @@
 # hnet
+Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
+Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
+If you use this code, cite ___.
 
 ## Terminology
 - "edge"           - 2 bits per pixel pair (just a pair of pixel values, e.g. 1-1 = both pixels are white)
