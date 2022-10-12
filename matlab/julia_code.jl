@@ -1,6 +1,6 @@
 # Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 # Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-# If you use this code, cite ___.
+# If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 import Distances
 
 function crop_least_co_occurring_edges(edge_states::Array{UInt8,2}, edges::Array{UInt8,2}, nToRemove::Array{Float64,2})::Array{UInt8,2}

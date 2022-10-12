@@ -1,6 +1,6 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license.
-% If you use this code, cite ___.
+% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 % INPUTS
 %   edgeStates  - n_edges x 1 (EDG enum)
 %   hist        - n_classes x 1 (numeric)

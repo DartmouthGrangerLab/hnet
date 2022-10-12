@@ -1,6 +1,6 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite ___.
+% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 % INPUTS
 %   cfg    - scalar (struct) configuration struct
 %   layout
