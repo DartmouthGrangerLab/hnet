@@ -43,7 +43,7 @@ function [] = RenderGroup(path, model, dat, code, groupIdx)
 
         pixelValues = dat.pixels(:,code.comp_best_img.(tier1Bank)(comp2RenderPremergeIdx(j))); % values for the image that best matches this component
         
-        PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(j)), code.hist.group(:,groupIdx), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, pixelValues, true, false, model.compbanks.(tier1Bank).node_name, do_pretty, [], lineWidth);
+        PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(j)), code.hist.group(:,groupIdx), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, pixelValues, true, false, model.compbanks.(tier1Bank).g.node_metadata.name, do_pretty, [], lineWidth);
     end
 
     fig.print(h, fullfile(path, 'group'), ['group',num2str(groupIdx)], [40,24], dpi);

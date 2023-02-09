@@ -25,7 +25,7 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
         mode        (1,:) char
         append      (1,:) char
     end
-    senseDidx = NeighborPairs(model.compbanks.(model.tier1_compbank_names{1}).graph_type, dat.n_nodes);
+    senseDidx = NeighborPairs(model.compbanks.(model.tier1_compbank_names{1}).graph_type, dat.n_nodes, model.compbanks.(model.tier1_compbank_names{1}).imgsz);
     
     t = tic();
     

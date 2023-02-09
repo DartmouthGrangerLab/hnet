@@ -56,7 +56,7 @@ function [] = RenderDatapoint(path, model, dat, code, pt2Render, append)
         
         plotTitle = ['cls="',dat.uniq_classes{idx},'", cmp-pt energy=',num2str(code.comp_code.(tier1Bank)(comp2RenderPremergeIdx(i),pt2Render)),', pt energy range=',num2str(min(code.comp_code.(model.output_bank_name)(:,pt2Render))),'-',num2str(max(code.comp_code.(model.output_bank_name)(:,pt2Render)))];
         
-        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), hist(:,comp2RenderIdx(i)), row, col, tier1_edge_endnode_idx, imgSz, pixelValues, true, true, model.compbanks.(tier1Bank).node_name, do_pretty, plotTitle, lineWidth);
+        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), hist(:,comp2RenderIdx(i)), row, col, tier1_edge_endnode_idx, imgSz, pixelValues, true, true, model.compbanks.(tier1Bank).g.node_metadata.name, do_pretty, plotTitle, lineWidth);
         if isempty(img)
             outImgSz = size(currImg);
             img = ones(n_rows * outImgSz(1), n_cols * outImgSz(2) + 48, 3);
@@ -88,7 +88,7 @@ function [] = RenderDatapoint(path, model, dat, code, pt2Render, append)
         [~,idx] = max(hist(:,comp2RenderIdx(i)));
         plotTitle = ['cls="',dat.uniq_classes{idx},'", cmp-pt energy=',num2str(code.comp_code.(tier1Bank)(comp2RenderPremergeIdx(i),pt2Render)),', pt energy range=',num2str(min(code.comp_code.(model.output_bank_name)(:,pt2Render))),'-',num2str(max(code.comp_code.(model.output_bank_name)(:,pt2Render)))];
         
-        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), hist(:,comp2RenderIdx(i)), row, col, tier1_edge_endnode_idx, imgSz, pixelValues, true, true, model.compbanks.(tier1Bank).node_name, do_pretty, plotTitle, lineWidth);
+        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), hist(:,comp2RenderIdx(i)), row, col, tier1_edge_endnode_idx, imgSz, pixelValues, true, true, model.compbanks.(tier1Bank).g.node_metadata.name, do_pretty, plotTitle, lineWidth);
         img(renderRow*outImgSz(1) + 48 + (1:outImgSz(1)),renderCol*outImgSz(1) + (1:outImgSz(2)),:) = currImg;
         renderRow = renderRow + floor((renderCol+1) / n_cols);
         renderCol = mod(renderCol+1, n_cols);

@@ -48,5 +48,5 @@ function [H,k] = GenerateCompositeH(compbank, cmp)
         k = k + op(4)*n_new;
     end
     
-    H = sparse(rows, cols, vals, compbank.n_nodes, compbank.n_nodes);
+    H = sparse(rows, cols, vals, compbank.g.n_nodes, compbank.g.n_nodes);
 end

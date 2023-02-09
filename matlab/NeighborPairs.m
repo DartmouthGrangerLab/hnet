@@ -4,17 +4,20 @@
 % INPUTS
 %   graphType - scalar (GRF enum)
 %   n_nodes - scalar (int-valued numeric) number of nodes
+%   imgsz   - OPTIONAL unless graphType == GRF.GRID2D or graphType == GRF.GRID2DMULTICHAN
 % RETURNS
 %   didx - n_edges x 2 (numeric index) pixel index for each edge
-function didx = NeighborPairs(graphType, n_nodes)
+function didx = NeighborPairs(graphType, n_nodes, imgsz)
     arguments
-        graphType(1,1) GRF, n_nodes(1,1)
+        graphType(1,1) GRF, n_nodes(1,1), imgsz
     end
 
     if graphType == GRF.GRID1D
         didx = neighbor_pairs_linear(n_nodes);
-    elseif graphType == GRF.GRID2DSQR
-        didx = neighbor_pairs_2d([sqrt(n_nodes),sqrt(n_nodes),1]); % for square, 1-channel images
+    elseif graphType == GRF.GRID2D
+        didx = neighbor_pairs_2d([sqrt(n_nodes),sqrt(n_nodes),1]); % for rectangular 1-channel images
+    elseif graphType == GRF.GRID2DMULTICHAN
+        [didx,nodeChan] = neighbor_pairs_2d_multichan(imgsz); % for rectangular n-channel images
     elseif graphType == GRF.FULL
         didx = neighbor_pairs_fully_connected(n_nodes);
     elseif graphType == GRF.SELF
@@ -26,17 +29,17 @@ end
 
 
 % confirmed identical to python code
-% imgSz is 3 x 1 (int-valued numeric) [n_rows,n_cols,n_chan]
-function didx = neighbor_pairs_2d(imgSz)
+% imgsz is 3 x 1 (int-valued numeric) [n_rows,n_cols,n_chan]
+function didx = neighbor_pairs_2d(imgsz)
     arguments
-        imgSz (1,3)
+        imgsz(3,1)
     end
-    assert(imgSz(3) == 1); % no support for multi-channel images yet
+    assert(imgsz(3) == 1); % no support for multi-channel images here
 
     max_edge_length = 1;
     interval = 1;
 
-    [row,col] = PixelRowCol(imgSz);                                                                   % 1) map node_i to coord vector with dimension d, coord: N -> R^d to n-dim Euclidean
+    [row,col] = PixelRowCol(imgsz);                                                                   % 1) map node_i to coord vector with dimension d, coord: N -> R^d to n-dim Euclidean
     px_coords = cat(2, row(:), col(:));
     dist = triu(squareform(pdist(px_coords)), 1);                                                     % 2) build distance matrix: take euclidean distances between all R^d pairings
     [didx1,didx2] = find((mod(round(dist), interval) == 0) & (dist <= max_edge_length) & (dist > 0)); % 3) get pixel neighbor pairs: use max_edge_length to determine neighbors
@@ -44,6 +47,29 @@ function didx = neighbor_pairs_2d(imgSz)
     
     didx = cat(2, didx1(:), didx2(:)); % convert from tuple of arrays to 2d array
     didx = didx(idx,:);
+end
+
+
+function [didx,nodeChan] = neighbor_pairs_2d_multichan(imgsz)
+    arguments
+        imgsz(3,1)
+    end
+    assert(imgsz(3) > 1);
+    
+    didx = neighbor_pairs_2d([imgsz(1),imgsz(2),1]);
+    
+    % replicate across channels
+    % didx actual values must change (the number of nodes increases)
+    n_nodes_per_chan = imgsz(1) * imgsz(2);
+    n_edges_per_chan = size(didx, 1);
+    didx = repmat(didx, [imgsz(3),1]);
+    nodeChan = ones(n_edges_per_chan*imgsz(3), 1);
+    for i = 2 : imgsz(3) % for each channel > 1
+        didx((i-1)*n_nodes_per_chan + (1:n_nodes_per_chan),:) = didx((i-1)*n_nodes_per_chan + (1:n_nodes_per_chan),:) + n_nodes_per_chan;
+        nodeChan((i-1)*n_edges_per_chan + (1:n_edges_per_chan)) = i;
+    end
+    
+    % NOT connecting across channels
 end
 
 

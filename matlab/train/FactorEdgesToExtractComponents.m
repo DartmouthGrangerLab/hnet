@@ -14,17 +14,10 @@
 %   model
 function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_per_cmp, bank2Cluster, bank2FormCmp, mode)
     arguments
-        model             (1,1) Model
-        dat               (1,1) Dataset
-        alg               (1,:) char
-        k                 (1,1)
-        max_edges_per_cmp (1,1)
-        bank2Cluster      (1,:) char
-        bank2FormCmp      (1,:) char
-        mode              (1,:) char
+        model(1,1) Model, dat(1,1) Dataset, alg(1,:) char, k(1,1), max_edges_per_cmp(1,1), bank2Cluster(1,:) char, bank2FormCmp(1,:) char, mode(1,:) char
     end
     k_per_class = round(k / dat.n_classes);
-    n_edges = model.compbanks.(bank2FormCmp).n_edges;
+    n_edges = model.compbanks.(bank2FormCmp).g.n_edges;
 
     t = tic();
     
@@ -87,9 +80,9 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     disp(['removing ',num2str(sum(mask)),' components for having too few edges']);
     edgeStates(:,mask) = [];
 
-    model = ClearComponents(model, bank2FormCmp);
-    model = InsertComponents(model, bank2FormCmp, size(edgeStates, 2));
-    model.compbanks.(bank2FormCmp).edge_states(:) = edgeStates;
+    model = model.ClearComponents(bank2FormCmp);
+    model = model.InsertComponents(bank2FormCmp, size(edgeStates, 2));
+    model = model.SetEdgeStates(bank2FormCmp, edgeStates);
 
     Toc(t, toc(t) > 1);
 end

@@ -6,7 +6,7 @@
 %   frontendSpec - (char) dataset and frontend name and parameters (see dataset.m)
 %   trnSpec      - (char) training specification string
 % USAGE
-%   Main('metacred',  'ucicreditgerman', 'tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsup');
+%   Main('metacred',  'ucicreditgerman', 'tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsupsplit');
 %   Main('groupedimg', 'mnistpy.128', 'connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2');
 function [] = Main(modelName, frontendSpec, trnSpec)
     addpath(genpath(Config.MyDir())); % add sub-folders in case they weren't added
@@ -26,7 +26,7 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     tstDataset = Dataset(cfg.frontend_spec, 'tst');
     
     % print dataset info to text files
-    temp = cat(2, trnDataset.node_name', num2cell(sum(trnDataset.pixels, 2)));
+    temp = cat(2, trnDataset.node_name, num2cell(sum(trnDataset.pixels, 2)));
     writecell(cat(1, {'node_name','num nonzero pixels'}, temp), fullfile(Config.OUT_DIR, ['node_name_',cfg.frontend_spec,'.csv']));
     if isfield(trnDataset.meta, 'category_info')
         temp = cat(2, fieldnames(trnDataset.meta.category_info), struct2cell(trnDataset.meta.category_info));
@@ -97,7 +97,7 @@ function [] = Main(modelName, frontendSpec, trnSpec)
         RenderAll(outDir, model, tstDataset, tstCode, bank, false, true);
 
         % get metadata and pass to PrintEdgeRelations
-        node_info = model.compbanks.(bank).node_name;
+        node_info = model.compbanks.(bank).g.node_metadata.name;
         if strcmp(bank, model.tier1_compbank_names{1}) && isfield(tstDataset.meta, 'category_info')
             for j = 1 : tstDataset.n_nodes
                 if isfield(tstDataset.meta.category_info, node_info{j})
@@ -156,18 +156,6 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     end
     trnSenseEdges = Edge2Logical(GetEdgeStates(trnDataset.pixels, model.compbanks.(model.tier1_compbank_names{1}).edge_endnode_idx, model.compbanks.(model.tier1_compbank_names{1}).edge_type_filter));
     tstSenseEdges = Edge2Logical(GetEdgeStates(tstDataset.pixels, model.compbanks.(model.tier1_compbank_names{1}).edge_endnode_idx, model.compbanks.(model.tier1_compbank_names{1}).edge_type_filter));
-    try
-        predName = {'onenn','nb','net','svm'};
-        pred = struct();
-        [~,pred.onenn] = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'knn', knnParams, true);
-        [~,pred.nb]    = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'nbfast', nbParams, true);
-        [~,pred.net]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'patternnet', [], true);
-        [~,pred.svm]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'svmliblinear', [], true);
-    catch ex
-        warning(ex.message);
-        disp('terminating figure code early due to above issue');
-        return
-    end
     
     %% render PCA and multidimensional scaling plots
     RenderMDS(outDir, tstDataset, model, tstCode, [], [], [], 'correlation', 'scatter', 'scatter_corr');
@@ -181,8 +169,35 @@ function [] = Main(modelName, frontendSpec, trnSpec)
             end
         end
     end
-
+   
     %% render TP / FP examples
+    predName = {};
+    pred = struct();
+    try
+        [~,pred.onenn] = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'knn', knnParams, true);
+        predName = [predName,'onenn'];
+    catch ex
+        warning(ex.message);
+    end
+    try
+        [~,pred.nb]    = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'nbfast', nbParams, true);
+        predName = [predName,'nb'];
+    catch ex
+        warning(ex.message);
+    end
+    try
+        [~,pred.net]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'patternnet', [], true);
+        predName = [predName,'net'];
+    catch ex
+        warning(ex.message);
+    end
+    try
+        [~,pred.svm]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trnDataset.label_idx, tstCode.comp_code.(model.output_bank_name)', tstDataset.label_idx, 'svmliblinear', [], true);
+        predName = [predName,'svm'];
+    catch ex
+        warning(ex.message);
+    end
+
     for c = 1 : trnDataset.n_classes
         className = trnDataset.uniq_classes{c};
         for i = 1 : numel(predName)

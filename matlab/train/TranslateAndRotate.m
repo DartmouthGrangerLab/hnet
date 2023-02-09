@@ -16,33 +16,34 @@ function model = TranslateAndRotate(model, bank, imgSz, max_translation_delta, m
     end
     
     compbank = model.compbanks.(bank);
-    n_edges = compbank.n_edges;
+    n_nodes = compbank.g.n_nodes;
+    n_edges = compbank.g.n_edges;
     n = compbank.n_cmp; % number of input components
     
     px_didx = compbank.edge_endnode_idx; % n_edges x 2 (numeric idx)
     
     t = tic();
     
-    compbank.meta.pretranslate_idx = 1:compbank.n_cmp;
+    compbank.cmp_metadata.pretranslate_idx = (1:compbank.n_cmp)';
     
     th_int = 45; % theta interval in degrees
     delta = -max_translation_delta:max_translation_delta;
     theta = -max_rot:th_int:max_rot;
     n_translations = numel(delta) * numel(delta) * numel(theta) - 1; % was = np.max(coords[:,0]) + 1
 
-    nodesToEdge = -1 .* ones(compbank.n_nodes, compbank.n_nodes);
+    nodesToEdge = -1 .* ones(n_nodes, n_nodes);
     for i = 1 : n_edges
         nodesToEdge(px_didx(i,1),px_didx(i,2)) = i;
     end
 
     fn = {'src_img_idx','focus_node','segment_idx','group_idx','pretranslate_idx'};
-    fn = fn(isfield(compbank.meta, fn)); % subset fields to only those present
+    fn = fn(isfield(compbank.cmp_metadata, fn)); % subset fields to only those present
     
-    edgeStates = EDG(zeros(compbank.n_edges, n, n_translations));
+    edgeStates = EDG(zeros(n_edges, n, n_translations));
     metadata = struct();
     for i = 1 : numel(fn)
-        if isfield(compbank.meta, fn{i})
-            metadata.(fn{i}) = zeros(n, n_translations, 'like', compbank.meta.(fn{i})); % create a new dictionary with the same keys but empty lists for values
+        if isfield(compbank.cmp_metadata, fn{i})
+            metadata.(fn{i}) = zeros(n, n_translations, 'like', compbank.cmp_metadata.(fn{i})); % create a new dictionary with the same keys but empty lists for values
         end
     end
     metadata.translation_idx = zeros(n, n_translations);
@@ -88,7 +89,7 @@ function model = TranslateAndRotate(model, bank, imgSz, max_translation_delta, m
                 metadata.offset_y(:,count)        = offset_y;
                 metadata.degrees(:,count)         = degrees;
                 for j = 1 : numel(fn)
-                    metadata.(fn{j})(:,count) = compbank.meta.(fn{j});
+                    metadata.(fn{j})(:,count) = compbank.cmp_metadata.(fn{j});
                 end
                 count = count + 1; % translation number/id/index
             end
@@ -100,13 +101,13 @@ function model = TranslateAndRotate(model, bank, imgSz, max_translation_delta, m
     
     fn = fieldnames(metadata);
     for i = 1 : numel(fn)
-        metadata.(fn{i}) = metadata.(fn{i})(:)';
+        metadata.(fn{i}) = metadata.(fn{i})(:);
         if strcmp(fn{i}, 'translation_idx')
-            metadata.(fn{i}) = cat(2, ones(1, compbank.n_cmp), metadata.(fn{i}));
+            metadata.(fn{i}) = cat(1, ones(compbank.n_cmp, 1), metadata.(fn{i}));
         elseif strcmp(fn{i}, 'offset_x') || strcmp(fn{i}, 'offset_y') || strcmp(fn{i}, 'degrees')
-            metadata.(fn{i}) = cat(2, zeros(1, compbank.n_cmp), metadata.(fn{i}));
+            metadata.(fn{i}) = cat(1, zeros(compbank.n_cmp, 1), metadata.(fn{i}));
         else
-            metadata.(fn{i}) = cat(2, compbank.meta.(fn{i}), metadata.(fn{i}));
+            metadata.(fn{i}) = cat(1, compbank.cmp_metadata.(fn{i}), metadata.(fn{i}));
         end
     end
     
@@ -120,22 +121,23 @@ function model = TranslateAndRotate(model, bank, imgSz, max_translation_delta, m
     end
     
     % update component bank
-    model = ClearComponents(model, bank);
-    model = InsertComponents(model, bank, size(edgeStates, 2));
-    model.compbanks.(bank).edge_states(:) = edgeStates;
-    model.compbanks.(bank).meta = metadata;
+    model = model.ClearComponents(bank);
+    model = model.InsertComponents(bank, size(edgeStates, 2));
+    model = model.SetEdgeStates(bank, edgeStates);
+    model.compbanks.(bank).cmp_metadata = metadata;
     
     % update groups
     if isfield(model.compbanks, 'group')
         assert(model.compbanks.group.n_cmp == 0);
-        model = InsertComponents(model, 'group', numel(unique(groupIdx)));
-        model.compbanks.group.edge_states(:) = EDG.NULL;
+        model = model.InsertComponents('group', numel(unique(groupIdx)));
+        edgeStates = EDG(EDG.NULL .* ones(size(model.compbanks.group.edge_states), 'uint8'));
         for i = 1 : model.compbanks.group.n_cmp
-            model.compbanks.group.edge_states(groupIdx==i,i) = EDG.AND;
+            edgeStates(groupIdx==i,i) = EDG.AND;
         end
+        model = model.SetEdgeStates('group', edgeStates);
 
         [~,grpIn] = inedges(model.g, 'group');
-        model.compbanks.group.meta = model.compbanks.(grpIn{1}).meta;
+        model.compbanks.group.cmp_metadata = model.compbanks.(grpIn{1}).cmp_metadata;
     end
     
     Toc(t);

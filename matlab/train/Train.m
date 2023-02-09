@@ -3,18 +3,18 @@
 % If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 % INPUTS
 %   cfg    - scalar (struct) configuration struct
-%   layout
+%   layout - scalar (struct)
 %   dat    - scalar (Dataset) training dataset
 % RETURNS
 %   model
 function model = Train(cfg, layout, dat)
     arguments
-        cfg(1,1) struct, layout(:,1) cell, dat(1,1) Dataset
+        cfg(1,1) struct, layout(1,1) struct, dat(1,1) Dataset
     end
     
     SetRNG(cfg);
     
-    model = Model(layout, dat.n_nodes, dat.n_classes, dat.node_name);
+    model = Model(layout, dat.n_nodes, dat.n_classes, dat.node_name, dat.img_sz);
     
     steps = strsplit(cfg.trn_spec, '-->');
     for ii = 1 : numel(steps)
@@ -23,12 +23,21 @@ function model = Train(cfg, layout, dat)
         task = step{2};
 
         if strcmp(task, 'memorize')
-            model = InsertComponents(model, bank, dat.n_pts);
-            model.compbanks.(bank).edge_states(:,end-dat.n_pts+1:end) = GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter); % convert from pixels to edges
-            model.compbanks.(bank).meta = struct(src_img_idx=1:dat.n_pts);
+            model = model.InsertComponents(bank, dat.n_pts);
+            model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
+            model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
+        elseif strcmp(task, 'memorizeclevr')
+            model = model.InsertComponents(bank, dat.n_pts);
+            model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
+            model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
+            model.compbanks.(bank).cmp_metadata.src_chan = dat.labeldata.foveated_chan; % implicit expansion
         elseif strcmp(task, 'extractconnec')
             max_length = str2double(step{3}); % max length of a connected component (e.g. Inf, 20)
-            model = ExtractConnectedPartComponents(model, bank, dat.img_sz, max_length, 1.5);
+            [newRelations,metadata] = ExtractConnectedPartComponents(model.compbanks.(bank), dat.img_sz, max_length, 1.5);
+            model = model.ClearComponents(bank);
+            model = model.InsertComponents(bank, size(newRelations, 2));
+            model = model.SetEdgeStates(bank, newRelations);
+            model.compbanks.(bank).cmp_metadata = metadata;
         elseif strcmp(task, 'transl') % translate
             max_translation_delta = str2double(step{3}); % subscript is an integer representing number of pixels to translate
             max_rot = 0; % max rotation in degrees
@@ -41,7 +50,7 @@ function model = Train(cfg, layout, dat)
             [~,inBanks] = inedges(model.g, bank);
             model = FactorEdgesToExtractComponents(model, dat, clusterer, k, max_edges_per_cmp, inBanks{1}, bank, mode);
         else
-            error('unexpected task');
+            error(['unexpected task ',task]);
         end
     end
 end

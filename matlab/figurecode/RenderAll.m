@@ -35,7 +35,7 @@ function [] = RenderAll(path, model, dat, code, bank, do_pretty, do_nodes)
         end
 
         if isempty(dat.img_sz) || ~strcmp(inputBank, 'sense') % non-image or non-tier-1
-            [row,col] = geom.FindCircleCoords(model.compbanks.(bank).n_nodes);
+            [row,col] = geom.FindCircleCoords(model.compbanks.(bank).g.n_nodes);
             row = row .* 22 + 3;
             col = col .* 22 + 3;
             imgSz = [28,28,1];
@@ -45,7 +45,7 @@ function [] = RenderAll(path, model, dat, code, bank, do_pretty, do_nodes)
             imgSz = dat.img_sz;
             lineWidth = 8; % in pixels
         end
-        img = PlotGraph(model.compbanks.(bank).edge_states(:,i), code.hist.(bank)(:,i), row, col, model.compbanks.(bank).edge_endnode_idx, imgSz, [], true, do_img, model.compbanks.(bank).node_name, do_pretty, ['cmp ',bank,'.',num2str(i)], lineWidth, do_nodes);
+        img = PlotGraph(model.compbanks.(bank).edge_states(:,i), code.hist.(bank)(:,i), row, col, model.compbanks.(bank).edge_endnode_idx, imgSz, [], true, do_img, model.compbanks.(bank).g.node_metadata.name, do_pretty, ['cmp ',bank,'.',num2str(i)], lineWidth, do_nodes);
 
         if ~all(strcmp(inNodeNames, 'sense')) % this is a higher tier component bank
             img = cat(2, img, zeros(size(img, 1), 16, 3)); % draw black bar separator
@@ -53,7 +53,7 @@ function [] = RenderAll(path, model, dat, code, bank, do_pretty, do_nodes)
             % render the upstream components that are used in the most edges
             [~,temp] = inedges(model.g, inputBank);
             if isempty(dat.img_sz) || ~strcmp(temp{1}, 'sense') % non-image or non-tier-1
-                [row,col] = geom.FindCircleCoords(model.compbanks.(inputBank).n_nodes);
+                [row,col] = geom.FindCircleCoords(model.compbanks.(inputBank).g.n_nodes);
                 row = row .* 22 + 3;
                 col = col .* 22 + 3;
                 imgSz = [28,28,1];
@@ -64,12 +64,12 @@ function [] = RenderAll(path, model, dat, code, bank, do_pretty, do_nodes)
                 lineWidth = 8; % in pixels
             end
             mask = (model.compbanks.(bank).edge_states(:,i) ~= EDG.NULL);
-            useCount = CountNumericOccurrences(reshape(model.compbanks.(bank).edge_endnode_idx(mask,:), 1, []), 1:model.compbanks.(bank).n_nodes);
+            useCount = CountNumericOccurrences(reshape(model.compbanks.(bank).edge_endnode_idx(mask,:), 1, []), 1:model.compbanks.(bank).g.n_nodes);
             [~,idx] = sort(useCount, 'descend');
             idx(6:end) = []; % just print the top 5 nodes
             idx(idx == 0) = []; % never print unused nodes
             for j = idx
-                currImg = PlotGraph(model.compbanks.(inputBank).edge_states(:,j), code.hist.(inputBank)(:,j), row, col, model.compbanks.(inputBank).edge_endnode_idx, imgSz, [], true, do_img, model.compbanks.(inputBank).node_name, do_pretty, ['cmp ',inputBank,'.',num2str(j),', used in ',num2str(useCount(j)),' edges'], lineWidth, do_nodes);
+                currImg = PlotGraph(model.compbanks.(inputBank).edge_states(:,j), code.hist.(inputBank)(:,j), row, col, model.compbanks.(inputBank).edge_endnode_idx, imgSz, [], true, do_img, model.compbanks.(inputBank).g.node_metadata.name, do_pretty, ['cmp ',inputBank,'.',num2str(j),', used in ',num2str(useCount(j)),' edges'], lineWidth, do_nodes);
                 img = cat(2, img, currImg);
             end
         end

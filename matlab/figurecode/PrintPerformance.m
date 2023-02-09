@@ -135,12 +135,18 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
     trntstAcc     = zeros(10, 1);
     p_us_vs_in    = zeros(10, 1);
     for i = 1 : 10 % varies strongly based on random initialization
-        trntrnInAcc(i) = ml.Classify(trnDataset.pixels', trnLabelIdx, trnDataset.pixels', trnLabelIdx, classifier, [], true);
-        [trntstInAcc(i),trntstInPred] = ml.Classify(trnDataset.pixels', trnLabelIdx, tstDataset.pixels', tstLabelIdx, classifier, [], true);
+        try
+            trntrnInAcc(i) = ml.Classify(trnDataset.pixels', trnLabelIdx, trnDataset.pixels', trnLabelIdx, classifier, [], true);
+            [trntstInAcc(i),trntstInPred] = ml.Classify(trnDataset.pixels', trnLabelIdx, tstDataset.pixels', tstLabelIdx, classifier, [], true);
+            trntrnEdgeAcc(i) = ml.Classify(trnSense', trnLabelIdx, trnSense', trnLabelIdx, classifier, [], true);
+            trntstEdgeAcc(i) = ml.Classify(trnSense', trnLabelIdx, tstSense', tstLabelIdx, classifier, [], true);
+        catch % in case deep learning toolbox not present
+            trntrnInAcc(i)   = NaN;
+            trntstInAcc(i)   = NaN;
+            trntrnEdgeAcc(i) = NaN;
+            trntstEdgeAcc(i) = NaN;
+        end
 
-        trntrnEdgeAcc(i) = ml.Classify(trnSense', trnLabelIdx, trnSense', trnLabelIdx, classifier, [], true);
-        trntstEdgeAcc(i) = ml.Classify(trnSense', trnLabelIdx, tstSense', tstLabelIdx, classifier, [], true);
-    
         try
             trntrnAcc(i) = ml.Classify(trn_comp_code', trnLabelIdx, trn_comp_code', trnLabelIdx, classifier, [], true);
             [trntstAcc(i),trntstPred] = ml.Classify(trn_comp_code', trnLabelIdx, tst_comp_code', tstLabelIdx, classifier, [], true);

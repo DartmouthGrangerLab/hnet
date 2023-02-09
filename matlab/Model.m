@@ -21,33 +21,33 @@ classdef Model
 
 
     methods
-        function obj = Model(layout, n_sense, n_label, nodeName) % constructor
+        function obj = Model(layout, n_sense, n_label, nodeName, imgSz) % constructor
+            if ~exist('imgSz', 'var')
+                imgSz = [];
+            end
             obj.g = addnode(obj.g, struct2table(struct(Name='sense', n_out=n_sense)));
             obj.g = addnode(obj.g, struct2table(struct(Name='label', n_out=n_label)));
             
-            for i = 1 : numel(layout)
-                if isfield(layout{i}, 'connec')
-                    connecSpec = ParseList(layout{i}.connec);
-                    for j = 1 : numel(connecSpec)
-                        srcdst = strsplit(connecSpec{j}, '-->');
-                        
-                        warning('off', 'MATLAB:table:RowsAddedExistingVars'); % not a problem
-                        obj.g = addedge(obj.g, srcdst{1}, srcdst{2});
+            connecSpec = ParseList(layout.connec);
+            for j = 1 : numel(connecSpec)
+                srcdst = strsplit(connecSpec{j}, '-->');
+                
+                warning('off', 'MATLAB:table:RowsAddedExistingVars'); % not a problem
+                obj.g = addedge(obj.g, srcdst{1}, srcdst{2});
 
-                        assert(~strcmp(srcdst{2}, 'sense')); % reserved word
-                        assert(indegree(obj.g, srcdst{2}) == 1); % currently, we only support one input per component bank (for simplicity, so that n_cmp of the input = n_nodes of the output)
-                    end
-                end
+                assert(~strcmp(srcdst{2}, 'sense')); % reserved word
+                assert(indegree(obj.g, srcdst{2}) == 1); % currently, we only support one input per component bank (for simplicity, so that n_cmp of the input = n_nodes of the output)
             end
             
-            for i = 1 : numel(layout)
-                if isfield(layout{i}, 'name')
-                    [~,upstreamBanks] = inedges(obj.g, layout{i}.name);
-                    obj.g.Nodes.encode_spec{strcmp(obj.g.Nodes.Name, layout{i}.name)} = layout{i}.encode_spec;
+            fn = fieldnames(layout);
+            for i = 1 : numel(fn)
+                if ~strcmp(fn{i}, 'connec')
+                    [~,upstreamBanks] = inedges(obj.g, fn{i});
+                    obj.g.Nodes.encode_spec{strcmp(obj.g.Nodes.Name, fn{i})} = layout.(fn{i}).encode_spec;
                     if any(strcmp(upstreamBanks, 'sense'))
-                        obj.compbanks.(layout{i}.name) = ComponentBank(layout{i}.graph_type, layout{i}.edge_type_filter, nodeName);
+                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, n_sense, nodeName, imgSz);
                     else
-                        obj.compbanks.(layout{i}.name) = ComponentBank(layout{i}.graph_type, layout{i}.edge_type_filter, {});
+                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, 0, [], imgSz);
                     end
                 end
             end
@@ -121,7 +121,7 @@ classdef Model
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
                 if ~strcmp(str, 'out')
-                    obj.compbanks.(str) = obj.compbanks.(str).InsertNodes(obj.compbanks.(bank).cmp_name(end-n_new+1:end));
+                    obj.compbanks.(str) = obj.compbanks.(str).InsertNodes(obj.compbanks.(str).g.n_nodes + (1:n_new), obj.compbanks.(bank).cmp_name(end-n_new+1:end));
                 end
             end
         end
@@ -138,7 +138,7 @@ classdef Model
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
                 if ~strcmp(str, 'out')
-                    obj.compbanks.(str) = obj.compbanks.(str).RemoveNodes(obj.compbanks.(str).node_name(~keep));
+                    obj.compbanks.(str) = obj.compbanks.(str).RemoveNodes(obj.compbanks.(str).g.nodes(~keep));
                 end
             end
         end
@@ -156,6 +156,11 @@ classdef Model
                 keep = any(obj.compbanks.(fn{i}).edge_states, 1);
                 obj = SubsetComponents(obj, fn{i}, keep);
             end
+        end
+
+
+        function obj = SetEdgeStates(obj, bank, edgeStates)
+            obj.compbanks.(bank) = obj.compbanks.(bank).SetEdgeStates(edgeStates);
         end
 
 

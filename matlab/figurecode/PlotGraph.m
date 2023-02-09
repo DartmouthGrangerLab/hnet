@@ -37,6 +37,7 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
     if ~exist('do_nodes', 'var') || isempty(do_nodes)
         do_nodes = true;
     end
+    assert(numel(edgeStates) == size(didx, 1));
     n_classes = numel(hist);
     scaleFactor = 32; % was 3
     if ~exist('lineWidth', 'var') || isempty(lineWidth)
