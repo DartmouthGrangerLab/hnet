@@ -41,7 +41,9 @@ types of components:
 - ```Main()``` - code entry point; loads the data, trains, tests, prints output / figures
 
 ## Running the Code
-Dependencies: matlab (designed for matlab version r2022a), python 3
+Dependencies:
+- matlab (designed for matlab version r2022a), python 3
+- matlab toolboxes: Image Processing Toolbox, Computer Vision Toolbox, Statistics and Machine Learning Toolbox
 
 Setup:
 1) Pull (or download) hnet from https://github.com/DartmouthGrangerLab/hnet
