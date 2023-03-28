@@ -49,12 +49,14 @@ types of components:
 ## Running the Code
 Dependencies:
 - matlab (designed for matlab version r2022a), python 3
-- matlab toolboxes: Image Processing Toolbox, Computer Vision Toolbox, Statistics and Machine Learning Toolbox
+- matlab toolboxes: Computer Vision Toolbox, Deep Learning Toolbox, Image Processing Toolbox, Statistics and Machine Learning Toolbox
 
 Setup:
 1) Pull (or download) hnet from https://github.com/DartmouthGrangerLab/hnet
 2) Navigate matlab's working directory to ./hnet/matlab
 3) Add the hnet/matlab/* subfolders to your matlab path.
 4) to run: in matlab, execute one of the following:
-	- ```Main('metacred',  'ucicreditgerman', 'tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsup');```
-    - ```Main('groupedimg', 'mnistpy.128', 'connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2');```
+    - ```Main("metacred",  "ucicreditgerman", "tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsupsplit");```
+    - ```Main("groupedimg", "mnistpy.128", "connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2");```
+    - ```Main("clevrpos1", "clevrpossimple", "tier1.memorize");```
+
