@@ -3,7 +3,10 @@ Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 
 Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+If you use this code, cite:
+- Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+- Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023. https://www.dropbox.com/s/fitxfi5br7251j2/AAAI_EDGeS%202023_paper.pdf?dl=1
+    - Supplemental: https://www.dropbox.com/s/xtl23qv5ui0k2wy/AAAI_EDGeS%202023_paper_supplemental.pdf?dl=1
 
 Some CLEVR-like stimuli were generated via the code available at [https://github.com/DartmouthGrangerLab/custom_clevr_stimgen](https://github.com/DartmouthGrangerLab/custom_clevr_stimgen)
 
