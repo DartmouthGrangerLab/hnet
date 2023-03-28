@@ -1,14 +1,16 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   path      - (char) output directory
 %   dat       - scalar (Dataset)
 %   pt2Render - scalar (numeric index)
-%   append    - (char) text to append to file name
+%   append    - scalar (string) text to append to file name
 function [] = RenderDatapointNoEdges(path, dat, pt2Render, append)
     arguments
-        path(1,:) char, dat(1,1) Dataset, pt2Render(1,1), append(1,:) char
+        path(1,:) char, dat(1,1) Dataset, pt2Render(1,1), append(1,1) string
     end
     do_pretty = false;
 
@@ -34,9 +36,9 @@ function [] = RenderDatapointNoEdges(path, dat, pt2Render, append)
         pixelValues = ~pixelValues;
     end
 
-    h = figure('Visible', 'off');
-    PlotGraph(EDG([]), [], row, col, [], imgSz, pixelValues, false, false, dat.node_name, do_pretty, num2str(pt2Render));
-    fig.print(h, path, append, [4,4], dpi);
+    h = figure(Visible="off");
+    PlotGraph(EDG([]), [], row, col, [], imgSz, pixelValues, false, false, dat.pixel_metadata.name, do_pretty, num2str(pt2Render));
+    fig.print(h, path, char(append), [4,4], dpi);
 
     Toc(t, toc(t) > 1);
 end

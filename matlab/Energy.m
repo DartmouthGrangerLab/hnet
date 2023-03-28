@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % determine how well each relation matches each image
 % INPUTS
 %   compbank - scalar (ComponentBank)
@@ -18,8 +20,9 @@ function energies = Energy(compbank, data)
     energies = zeros(compbank.n_cmp, n_pts); % yes, double
     
     % match completely
-    %   10 vs 10 = best
-    %   all others = equally bad
+    %   e.g.
+    %   10 vs 10 = best energy
+    %   all others = equally bad energy
     if do_h_mode
         data = double(data); % must be double if H is sparse (matlab technical limitation)
         
@@ -27,13 +30,8 @@ function energies = Energy(compbank, data)
             [H,k] = GenerateCompositeH(compbank, i);
 
             energies(i,:) = dot(data, H * data) + k; % faster, identical to below
-%             for j = 1 : n_pts
-%                 energies(i,j) = data(:,j)' * (H * data(:,j)) + k;
-%             end
         end
         energies = max(energies(:)) - energies; % convert from 0 = best to larger = better (similarity)
-        % ^ makes no difference to runtime whether H is sparse or full (even when full H is single precision)
-        % ^ no substantial peformance impact of transposing energies
     else
         edgeData = GetEdgeStates(data, compbank.edge_endnode_idx, compbank.edge_type_filter); % convert data to edges
         

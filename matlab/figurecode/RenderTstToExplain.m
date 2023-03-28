@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   path      - (char) output directory
 %   model
@@ -10,7 +12,7 @@
 %   do_pretty - scalar (logical)
 function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
     arguments
-        path(1,:) char, model(1,1) Model, dat(1,1) Dataset, code(1,1) struct, bank(1,:) char, do_pretty(1,1)
+        path(1,:) char, model(1,1) Model, dat(1,1) Dataset, code(1,1) struct, bank(1,:) char, do_pretty(1,1) logical
     end
     max_to_print = 20;
     do_img = true;
@@ -18,22 +20,22 @@ function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
     t = tic();
     
     if do_pretty
-        append = '_pretty.png';
+        append = "_pretty.png";
         dpi = 300;
     else
-        append = '.png';
+        append = ".png";
         dpi = 150;
     end
 
     [~,inNodeNames] = inedges(model.g, bank);
-    if all(strcmp(inNodeNames, 'sense')) % this must be a higher tier component bank
+    if all(strcmp(inNodeNames, "sense")) % this must be a higher tier component bank
         return
     end
 
     inputBank = inNodeNames{1}; %TODO: should support multiple input banks
 
     for i = 1 : min(max_to_print, dat.n_pts) % for each component in this bank
-        [nrg,order] = sort(code.comp_code.(bank)(:,i), 'descend'); % find components best matching this datapoint
+        [nrg,order] = sort(code.comp_code.(bank)(:,i), "descend"); % find components best matching this datapoint
         if model.compbanks.(bank).n_cmp > 10
             nrg = nrg([1:5,end-4:end]);
             order = order([1:5,end-4:end]);
@@ -42,10 +44,10 @@ function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
             cmp = order(j);
 
             if ~do_img
-                h = figure('Visible', 'off', 'defaultAxesFontSize', 14); % default = 10
+                h = figure(Visible="off", defaultAxesFontSize=14); % default = 10
             end
     
-            if isempty(dat.img_sz) || ~strcmp(inNodeNames{1}, 'sense') % non-image or non-tier-1
+            if isempty(dat.img_sz) || ~strcmp(inNodeNames{1}, "sense") % non-image or non-tier-1
                 [row,col] = geom.FindCircleCoords(model.compbanks.(bank).g.n_nodes);
                 row = row .* 22 + 3;
                 col = col .* 22 + 3;
@@ -63,7 +65,7 @@ function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
             % render the upstream components that are used in the most edges
             img = cat(2, img, zeros(size(img, 1), 16, 3)); % draw black bar separator
             [~,inputInputBank] = inedges(model.g, inputBank);
-            if isempty(dat.img_sz) || ~strcmp(inputInputBank{1}, 'sense') % non-image or non-tier-1
+            if isempty(dat.img_sz) || ~strcmp(inputInputBank{1}, "sense") % non-image or non-tier-1
                 [row,col] = geom.FindCircleCoords(model.compbanks.(inputBank).g.n_nodes);
                 row = row .* 22 + 3;
                 col = col .* 22 + 3;
@@ -76,7 +78,7 @@ function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
             end
             mask = (model.compbanks.(bank).edge_states(:,cmp) ~= EDG.NULL);
             useCount = CountNumericOccurrences(reshape(model.compbanks.(bank).edge_endnode_idx(mask,:), 1, []), 1:model.compbanks.(bank).g.n_nodes);
-            [~,idx] = sort(useCount, 'descend');
+            [~,idx] = sort(useCount, "descend");
             idx(6:end) = []; % just print the top 5 nodes
             idx(idx == 0) = []; % never print unused nodes
             for k = idx
@@ -86,9 +88,9 @@ function [] = RenderTstToExplain(path, model, dat, code, bank, do_pretty)
             end
             
             if do_img
-                fig.print(img, fullfile(path, 'explain'), ['dat',num2str(i),'_',bank,'_cmp',num2str(cmp),append]);
+                fig.print(img, char(fullfile(path, "explain")), char("dat" + num2str(i) + "_" + bank + "_cmp" + num2str(cmp) + append));
             else
-                fig.print(h, fullfile(path, 'explain'), ['dat',num2str(i),'_',bank,'_cmp',num2str(cmp),append], [4,4], dpi);
+                fig.print(h, char(fullfile(path, "explain")), char("dat" + num2str(i) + "_" + bank + "_cmp" + num2str(cmp) + append), [4,4], dpi);
             end
         end
     end

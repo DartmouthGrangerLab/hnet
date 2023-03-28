@@ -1,16 +1,12 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % print edges to output
 function [] = PrintEdgeRelations(path, diaryname, edgeStates, didx, nodeName, bank, tier1Bank)
     arguments
-        path       (1,:) char
-        diaryname  (1,:) char
-        edgeStates (:,1) EDG
-        didx       (:,2)
-        nodeName         cell
-        bank       (1,:) char
-        tier1Bank  (1,:) char
+        path(1,1) string, diaryname(1,1) string, edgeStates(:,1) EDG, didx(:,2), nodeName cell, bank(1,1) string, tier1Bank(1,1) string
     end
     
     str = "";
@@ -47,11 +43,11 @@ function [] = PrintEdgeRelations(path, diaryname, edgeStates, didx, nodeName, ba
                 end
             end
 
-            if strcmp(bank, 'meta')
+            if bank == "meta"
                 parts = unique(didx(idx,:));
                 for i = 1 : numel(parts)
                     str = str + " " + newline() + "CURRENT PART: " + int2str(parts(i));
-                    str = str + newline() + fileread(fullfile(path, 'relations', [tier1Bank,'_cmp',int2str(parts(i)),'.txt']));
+                    str = str + newline() + fileread(fullfile(path, "relations", tier1Bank + "_cmp" + int2str(parts(i)) + ".txt"));
                 end
             end
             
@@ -59,11 +55,11 @@ function [] = PrintEdgeRelations(path, diaryname, edgeStates, didx, nodeName, ba
         end
     end
     
-    if ~isfolder(fullfile(path, 'relations'))
+    if ~isfolder(fullfile(path, "relations"))
         mkdir(path);
-        mkdir(fullfile(path, 'relations'));
+        mkdir(fullfile(path, "relations"));
     end
-    fid = fopen(fullfile(path, 'relations', diaryname), 'w');
-    fprintf(fid, '%s', str);
+    fid = fopen(fullfile(path, "relations", diaryname), 'w');
+    fprintf(fid, "%s", str);
     fclose(fid);
 end

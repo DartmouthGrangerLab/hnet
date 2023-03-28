@@ -1,16 +1,18 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   path      - (char) output directory
 %   model     - (Model)
 %   dat       - (Dataset)
 %   code      - (struct)
 %   pt2Render - scalar (numeric index)
-%   append    - (char) text to append to file name
+%   append    - scalar (string) text to append to file name
 function [] = RenderDatapoint(path, model, dat, code, pt2Render, append)
     arguments
-        path(1,:) char, model(1,1) Model, dat(1,1) Dataset, code(1,1) struct, pt2Render(1,1), append(1,:) char
+        path(1,:) char, model(1,1) Model, dat(1,1) Dataset, code(1,1) struct, pt2Render(1,1), append(1,1) string
     end
     do_pretty = false;
     
@@ -64,9 +66,9 @@ function [] = RenderDatapoint(path, model, dat, code, pt2Render, append)
         img(1:outImgSz(1), (i-1)*outImgSz(1) + (1:outImgSz(2)),:) = currImg;
     end
     
-    img = insertText(img, [0,outImgSz(1) + 1], 'worst', 'BoxOpacity', 0);
+    img = insertText(img, [0,outImgSz(1) + 1], "worst", BoxOpacity=0);
     img(outImgSz(1) + 16 + (1:16),:,:) = 0; % black dividing line
-    img = insertText(img, [0,outImgSz(1) + 33], 'best', 'BoxOpacity', 0);
+    img = insertText(img, [0,outImgSz(1) + 33], "best", BoxOpacity=0);
     
     % find best components for this image
     [~,comp2RenderIdx] = maxk(code.comp_code.(model.output_bank_name)(:,pt2Render), n_best_comps_per_img); % best matching output bank components
@@ -94,5 +96,5 @@ function [] = RenderDatapoint(path, model, dat, code, pt2Render, append)
         renderCol = mod(renderCol+1, n_cols);
     end
     
-    fig.print(img, path, [append,'_edgesim.png']);
+    fig.print(img, path, char(append + "_edgesim.png"));
 end

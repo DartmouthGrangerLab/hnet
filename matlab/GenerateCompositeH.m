@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   compbank - scalar (ComponentBank)
 %   cmp - scalar (numeric index) component number
@@ -28,20 +30,20 @@ function [H,k] = GenerateCompositeH(compbank, cmp)
         n_new = sum(mask);
         op = r.Op();
 
-        edgeNodes = didx(mask,:);
+        edgenodes = didx(mask,:);
 
-        rows(count+(1:n_new)) = edgeNodes(:,1);
-        cols(count+(1:n_new)) = edgeNodes(:,1);
+        rows(count+(1:n_new)) = edgenodes(:,1);
+        cols(count+(1:n_new)) = edgenodes(:,1);
         vals(count+(1:n_new)) = op(1); % implicit expansion
         count = count + n_new;
 
-        rows(count+(1:n_new)) = edgeNodes(:,1);
-        cols(count+(1:n_new)) = edgeNodes(:,2);
+        rows(count+(1:n_new)) = edgenodes(:,1);
+        cols(count+(1:n_new)) = edgenodes(:,2);
         vals(count+(1:n_new)) = op(2); % implicit expansion
         count = count + n_new;
 
-        rows(count+(1:n_new)) = edgeNodes(:,2);
-        cols(count+(1:n_new)) = edgeNodes(:,2);
+        rows(count+(1:n_new)) = edgenodes(:,2);
+        cols(count+(1:n_new)) = edgenodes(:,2);
         vals(count+(1:n_new)) = op(3); % implicit expansion
         count = count + n_new;
 

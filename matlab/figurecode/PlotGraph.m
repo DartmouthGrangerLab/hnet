@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
-% Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license.
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   edgeStates  - n_edges x 1 (EDG enum)
 %   hist        - n_classes x 1 (numeric)
@@ -25,22 +27,21 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
     validateattributes(col,        {'numeric'}, {'nonempty'}, 4);
     validateattributes(didx,       {'numeric'}, {}, 5);
     validateattributes(imgSz,      {'numeric'}, {'nonempty'}, 6);
-    if ~exist('nodeActivations', 'var') || isempty(nodeActivations)
+    if ~exist("nodeActivations", "var") || isempty(nodeActivations)
         nodeActivations = false(numel(row), 1);
     end
-    if ~exist('do_color', 'var') || isempty(do_color)
+    if ~exist("do_color", "var") || isempty(do_color)
         do_color = false;
     end
-    if ~exist('do_img', 'var') || isempty(do_img)
+    if ~exist("do_img", "var") || isempty(do_img)
         do_img = false;
     end
-    if ~exist('do_nodes', 'var') || isempty(do_nodes)
+    if ~exist("do_nodes", "var") || isempty(do_nodes)
         do_nodes = true;
     end
-    assert(numel(edgeStates) == size(didx, 1));
     n_classes = numel(hist);
     scaleFactor = 32; % was 3
-    if ~exist('lineWidth', 'var') || isempty(lineWidth)
+    if ~exist("lineWidth", "var") || isempty(lineWidth)
         lineWidth = 2;
     end
     row = row(:); % assumed below
@@ -57,7 +58,7 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
             is_limited_color_pallette = true;
         end
         if is_limited_color_pallette
-            color([EDG.NOR,EDG.NCONV,EDG.NIMPL,EDG.AND],:) = linspecer(4, 'qualitative');
+            color([EDG.NOR,EDG.NCONV,EDG.NIMPL,EDG.AND],:) = linspecer(4, "qualitative");
         else
             color = linspecer(16);
         end
@@ -101,7 +102,7 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
                 elseif i == EDG.NOR
                     img = Helper(img, row, col, didx, (edgeStates == i), [0,0,0], lineWidth);
                 else
-                    error('bug');
+                    error("bug");
                 end
             else
                 img = Helper(img, row, col, didx, (edgeStates == i), color(i,:), lineWidth);
@@ -113,24 +114,24 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
     if ~do_pretty && do_color
         if is_limited_color_pallette
             if do_img
-                img = insertText(img, [0,round(1*scaleFactor)], '0  ', 'TextColor', [0,0,0.8], 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
-                img = insertText(img, [0,round(1*scaleFactor)], '  1', 'TextColor', [0.8,0,0], 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
-                img = insertText(img, [0,round(1*scaleFactor)], '    (NIMPL / NCONV)', 'TextColor', [0,0,0], 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
+                img = insertText(img, [0,round(1*scaleFactor)], "0  ", TextColor=[0,0,0.8], BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
+                img = insertText(img, [0,round(1*scaleFactor)], "  1", TextColor=[0.8,0,0], BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
+                img = insertText(img, [0,round(1*scaleFactor)], "    (NIMPL / NCONV)", TextColor=[0,0,0], BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
                 if any(edgeStates == EDG.AND)
-                    img = insertText(img, [0,round(2*scaleFactor)], 'AND', 'TextColor', [0,0.5,0], 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
+                    img = insertText(img, [0,round(2*scaleFactor)], "AND", TextColor=[0,0.5,0], BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
                 end
                 if any(edgeStates == EDG.NOR)
-                    img = insertText(img, [0,round(2*scaleFactor)], 'NOR', 'TextColor', [0,0,0], 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
+                    img = insertText(img, [0,round(2*scaleFactor)], "NOR", TextColor=[0,0,0], BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
                 end
             else
-                text(0, imgSz(2) - 1*1.5, '0  ', 'Color', [0,0,0.8]);
-                text(0, imgSz(2) - 1*1.5, '  1', 'Color', [0.8,0,0]);
-                text(0, imgSz(2) - 1*1.5, '    (NIMPL / NCONV)'); % black
+                text(0, imgSz(2) - 1*1.5, "0  ", Color=[0,0,0.8]);
+                text(0, imgSz(2) - 1*1.5, "  1", Color=[0.8,0,0]);
+                text(0, imgSz(2) - 1*1.5, "    (NIMPL / NCONV)"); % black
                 if any(edgeStates == EDG.AND)
-                    text(0, imgSz(2) - 2*1.5, 'AND', 'Color', [0,0.5,0]);
+                    text(0, imgSz(2) - 2*1.5, "AND", Color=[0,0.5,0]);
                 end
                 if any(edgeStates == EDG.NOR)
-                    text(0, imgSz(2) - 2*1.5, 'NOR', 'Color', [0,0,0]);
+                    text(0, imgSz(2) - 2*1.5, "NOR", Color=[0,0,0]);
                 end
             end
         else
@@ -138,9 +139,9 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
             for i = 1 : 16
                 if any(edgeStates == i)
                     if do_img
-                        img = insertText(img, [0,round(count*scaleFactor)], char(EDG(i)), 'TextColor', color(i,:), 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75));
+                        img = insertText(img, [0,round(count*scaleFactor)], char(EDG(i)), TextColor=color(i,:), BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75));
                     else
-                        text(0, imgSz(2) - count*1.5, char(EDG(i)), 'Color', color(i,:));
+                        text(0, imgSz(2) - count*1.5, char(EDG(i)), Color=color(i,:));
                     end
                     count = count + 1;
                 end
@@ -167,14 +168,14 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
                 else
                     clr = 'black';
                 end
-                img = insertShape(img, 'FilledCircle', [col(:),row(:),repmat(scaleFactor/5, numel(col), 1)], 'Color', clr, 'SmoothEdges', false, 'Opacity', 1);
+                img = insertShape(img, "FilledCircle", [col(:),row(:),repmat(scaleFactor/5, numel(col), 1)], Color=clr, SmoothEdges=false, Opacity=1);
             elseif isnumeric(nodeActivations)
-                img = insertShape(img, 'FilledCircle', [col(:),row(:),repmat(scaleFactor/5, numel(col), 1)], 'Color', nodeActivations(:) .* [1,1,1], 'SmoothEdges', false, 'Opacity', 1);
+                img = insertShape(img, "FilledCircle", [col(:),row(:),repmat(scaleFactor/5, numel(col), 1)], Color=nodeActivations(:).*[1,1,1], SmoothEdges=false, Opacity=1);
             else
                 mask = nodeMsk(:) & nodeActivations(:) ~= 0; % plot white pixels
-                img = insertShape(img, 'Circle', [col(mask),row(mask),repmat(scaleFactor/5, sum(mask), 1)], 'Color', 'black', 'SmoothEdges', false, 'Opacity', 1);
+                img = insertShape(img, "Circle", [col(mask),row(mask),repmat(scaleFactor/5, sum(mask), 1)], Color="black", SmoothEdges=false, Opacity=1);
                 mask = nodeMsk(:) & nodeActivations(:) == 0; % plot black pixels
-                img = insertShape(img, 'FilledCircle', [col(mask),row(mask),repmat(scaleFactor/5, sum(mask), 1)], 'Color', 'black', 'SmoothEdges', false, 'Opacity', 1);
+                img = insertShape(img, "FilledCircle", [col(mask),row(mask),repmat(scaleFactor/5, sum(mask), 1)], Color="black", SmoothEdges=false, Opacity=1);
             end
         else
             if isnumeric(nodeActivations)
@@ -191,24 +192,24 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
         if do_img
             tempCol = col(nodeMsk);
             tempRow = row(nodeMsk);
-            img = insertText(img, [tempCol(:),tempRow(:)], nodeName(nodeMsk), 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75), 'AnchorPoint', 'LeftCenter');
+            img = insertText(img, [tempCol(:),tempRow(:)], nodeName(nodeMsk), BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75), AnchorPoint="LeftCenter");
         else
-            text(col(nodeMsk), row(nodeMsk), nodeName(nodeMsk), 'Interpreter', 'none');
+            text(col(nodeMsk), row(nodeMsk), nodeName(nodeMsk), Interpreter="none");
         end
     end
     
     % class histogram
     if ~do_pretty && ~isempty(hist)
-        color = linspecer(n_classes, 'qualitative');
+        color = linspecer(n_classes, "qualitative");
         if do_img
             line = zeros(n_classes, 4);
             for c = 1 : n_classes
                 line(c,:) = [c*3,(imgSz(1)*scaleFactor)-1,c*3,(imgSz(1)*scaleFactor) - (hist(c)*0.5*imgSz(1)*scaleFactor)]; % n_lines x 4 [col(pt1),row(pt1),col(pt2),row(pt2)]
             end
-            img = insertShape(img, 'Line', line, 'Color', color, 'SmoothEdges', false, 'LineWidth', 3);
+            img = insertShape(img, "Line", line, Color=color, SmoothEdges=false, LineWidth=3);
         else
             for c = 1 : n_classes
-                bar(c, hist(c) * 0.9 * imgSz(1) / 2, 'FaceColor', color(c,:), 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+                bar(c, hist(c) * 0.9 * imgSz(1) / 2, FaceColor=color(c,:), EdgeColor="none", FaceAlpha=0.8);
             end
         end
     end
@@ -216,9 +217,9 @@ function img = PlotGraph(edgeStates, hist, row, col, didx, imgSz, nodeActivation
     % title
     if ~do_pretty && exist('plotTitle', 'var') && ~isempty(plotTitle)
         if do_img
-            img = insertText(img, [round(imgSz(2)*scaleFactor/2),0], plotTitle, 'BoxOpacity', 0, 'FontSize', ceil(scaleFactor * 0.75), 'AnchorPoint', 'CenterTop');
+            img = insertText(img, [round(imgSz(2)*scaleFactor/2),0], plotTitle, BoxOpacity=0, FontSize=ceil(scaleFactor * 0.75), AnchorPoint="CenterTop");
         else
-            text(0, round(imgSz(2)/2), plotTitle, 'Interpreter', 'none', 'HorizontalAlignment', 'center');
+            text(0, round(imgSz(2)/2), plotTitle, Interpreter="none", HorizontalAlignment="center");
         end
     end
     
