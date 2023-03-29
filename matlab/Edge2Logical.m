@@ -9,13 +9,13 @@
 % RETURNS
 %   y - n_edges*EDG.n x n (logical)
 function y = Edge2Logical(x, do_include_na)
-    if ~exist('do_include_na', 'var') || isempty(do_include_na)
+    if ~exist("do_include_na", "var") || isempty(do_include_na)
         do_include_na = true;
     end
     [n_edges,n] = size(x);
 
     y = false(n_edges, n, EDG.n);
-    uniqEdgeTypes = enumeration('EDG');
+    uniqEdgeTypes = enumeration("EDG");
     
     for i = 1 : EDG.n
         y(:,:,i) = (x == uniqEdgeTypes(i));

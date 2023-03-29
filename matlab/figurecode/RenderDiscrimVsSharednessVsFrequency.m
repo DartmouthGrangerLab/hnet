@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % 2d scatter plot for all neurons - discrim vs shared
 % INPUTS
 %   path   - (char) output directory
@@ -50,7 +52,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
     ax.XLim = [0,1];
     ax.YLim = [0,1];
     ax.ZLim = [0,1];
-    xlabel('discriminability'); ylabel('sharedness'); zlabel('relative frequency');
+    xlabel("discriminability"); ylabel("sharedness"); zlabel("relative frequency");
     box on
     grid on
     view(135, 45);
@@ -64,8 +66,8 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
         n_rows = 3; n_cols = 6; margin = [0.05,0.05];
 
         feat2RenderIdx = idx(:);
-        if isfield(model.compbanks, 'group') % if we have groups
-            error('TODO');
+        if isfield(model.compbanks, "group") % if we have groups
+            error("TODO");
         else
             feat2RenderPremergeIdx = feat2RenderIdx;
         end
@@ -78,7 +80,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
             ax.XTick = 1:dat.n_classes;
             ax.XTickLabels = dat.uniq_classes;
             ax.YTick = 0;
-            xlabel(num2str(feat2RenderIdx(i))); ylabel('histogram count');
+            xlabel(num2str(feat2RenderIdx(i))); ylabel("histogram count");
         end
 
         fig.print(h, path, ['discrimvsshared_examples_',append], 'auto', dpi);

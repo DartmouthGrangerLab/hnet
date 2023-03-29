@@ -76,6 +76,9 @@ end
 
 
 function didx = neighbor_pairs_fully_connected(n_nodes)
+    arguments
+        n_nodes(1,1)
+    end
     didx = zeros((n_nodes*n_nodes - n_nodes) / 2, 2);
     count = 1;
     for i = 1 : n_nodes
@@ -88,12 +91,18 @@ end
 
 
 function didx = neighbor_pairs_linear(n_nodes)
+    arguments
+        n_nodes(1,1)
+    end
     x = 1:n_nodes;
     didx = cat(2, x(1:end-1)', x(2:end)');
 end
 
 
 function didx = neighbor_pairs_self(n_nodes)
+    arguments
+        n_nodes(1,1)
+    end
     didx = zeros(n_nodes, 2);
     for i = 1 : n_nodes
         didx(i,:) = [i,i];

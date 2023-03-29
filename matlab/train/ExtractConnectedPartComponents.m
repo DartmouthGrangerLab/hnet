@@ -60,7 +60,8 @@ function [newRelations,metadata] = ExtractConnectedPartComponents(compbank, imgs
         [coordsR,coordsC] = find(reshape(activations, imgsz(1), imgsz(2))); % n_active_edges x 1 (both)
         pcoords = cat(2, coordsC(:), -coordsR(:)); % n_active_edges x 2
         dist = squareform(pdist(pcoords)); % n_active_edges x n_active_edges (aka n_pixels_that_are_white)
-        [iidxR,iidxC] = find(triu(dist < connection_thresh, 1)); % n_graph_edges x 1 (both)
+        mask = dist < connection_thresh;
+        [iidxR,iidxC] = find(triu(mask, 1)); % n_graph_edges x 1 (both)
         g = graph(iidxR, iidxC, [], nodeNames(activations));
         
         % find strings of activated nodes that form a continously connected curve

@@ -95,7 +95,7 @@ end
 %   edges          - n_edges x n_pts (EDG enum)
 %   k              - scalar (int-valued numeric)
 %   edgeTypeFilter - vector (EDG enum)
-function relations = Factor(clusterer, edges, k, edgeTypeFilter)
+function relations = Factor(alg, edges, k, edgeTypeFilter)
     assert(k > 1);
     [n_edges,n_pts] = size(edges);
     
