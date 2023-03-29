@@ -29,9 +29,11 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
     
     fig.subplot(n_rows, n_cols, 1, margin);
     warning("off", "stats:pca:ColRankDefX");
-    [~,score,~,~,explained,~] = pca(double(dat.pixels'), 'NumComponents', 3);
+    [~,score,~,~,explained,~] = pca(double(dat.pixels'), NumComponents=3);
     Helper(score, dat.label_idx, inPredLabelIdx, dat.n_classes, mode);
-    xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']); ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']); zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
+    xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']);
+    ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']);
+    zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
     title("pca(input 'pixels')", FontSize=10); % default = 11
 
     fig.subplot(n_rows, n_cols, 2, margin);
@@ -43,9 +45,11 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
     pDist = squareform(pdist(double(edges'), distMeasure));
     
     fig.subplot(n_rows, n_cols, 3, margin);
-    [~,score,~,~,explained,~] = pca(double(edges'), 'NumComponents', 3);
+    [~,score,~,~,explained,~] = pca(double(edges'), NumComponents=3);
     Helper(score, dat.label_idx, edgePredLabelIdx, dat.n_classes, mode);
-    xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']); ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']); zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
+    xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']);
+    ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']);
+    zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
     title("pca(edges)", FontSize=10); % default = 11
 
     fig.subplot(n_rows, n_cols, 4, margin);
@@ -57,9 +61,11 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
         bank = model.compbank_names{i};
 
         fig.subplot(n_rows, n_cols, 4 + 2*(i-1) + 1, margin);
-        [~,score,~,~,explained,~] = pca(double(code.comp_code.(bank)'), 'NumComponents', 3);
+        [~,score,~,~,explained,~] = pca(double(code.comp_code.(bank)'), NumComponents=3);
         Helper(score, dat.label_idx, codePredLabelIdx, dat.n_classes, mode);
-        xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']); ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']); zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
+        xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']);
+        ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']);
+        zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
         title(['pca(logicnet ',bank,' encoding)'], FontSize=10); % default = 11
 
         fig.subplot(n_rows, n_cols, 4 + 2*(i-1) + 2, margin);

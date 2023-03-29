@@ -24,7 +24,7 @@ classdef Model
 
     methods
         function obj = Model(layout, n_sense, n_label, nodeName, imgSz) % constructor
-            if ~exist('imgSz', 'var')
+            if ~exist("imgSz", "var")
                 imgSz = [];
             end
             obj.g = addnode(obj.g, struct2table(struct(Name='sense', n_out=n_sense)));

@@ -30,11 +30,11 @@ function [compCode,premergeIdx] = Encode(compbank, data, encodeSpec)
         step = strsplit(steps{ii}, '.');
         task = step{1};
 
-        if strcmp(task, 'energy')
+        if strcmp(task, "energy")
             compCode = Energy(compbank, compCode);
             premergeIdx = repmat((1:compbank.n_cmp)', 1, size(compCode, 2)); % n_groups x n_pts
-        elseif strcmp(task, 'max')
-            newCompCode = zeros(n_pts, compbank.n_cmp, 'single'); % transposed at the end
+        elseif strcmp(task, "max")
+            newCompCode = zeros(n_pts, compbank.n_cmp, "single"); % transposed at the end
             premergeIdx = zeros(n_pts, compbank.n_cmp); % transposed at the end
             for i = 1 : compbank.n_cmp
                 idx = find(compbank.edge_states(:,i) ~= EDG.NULL);
@@ -45,8 +45,8 @@ function [compCode,premergeIdx] = Encode(compbank, data, encodeSpec)
             end
             compCode = newCompCode';
             premergeIdx = premergeIdx';
-        elseif strcmp(task, 'maxabs')
-            newCompCode = zeros(n_pts, compbank.n_cmp, 'single'); % transposed at the end
+        elseif strcmp(task, "maxabs")
+            newCompCode = zeros(n_pts, compbank.n_cmp, "single"); % transposed at the end
             premergeIdx = zeros(n_pts, compbank.n_cmp); % transposed at the end
             for i = 1 : compbank.n_cmp
                 idx = find(compbank.edge_states(:,i) ~= EDG.NULL);
@@ -57,11 +57,11 @@ function [compCode,premergeIdx] = Encode(compbank, data, encodeSpec)
             end
             compCode = newCompCode';
             premergeIdx = premergeIdx';
-        elseif strcmp(task, 'wta')
+        elseif strcmp(task, "wta")
             n_cmp_per_img = str2double(step{2}); % integer, e.g. 20
             compCode = logical(ml.KWTA(compCode, n_cmp_per_img)); % n_trn x n_cmp_groups
         else
-            error('unexpected task');
+            error("unexpected task");
         end
     end
 

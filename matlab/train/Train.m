@@ -24,27 +24,27 @@ function model = Train(cfg, layout, dat)
         bank = step{1};
         task = step{2};
 
-        if strcmp(task, "memorize")
+        if task == "memorize"
             model = model.InsertComponents(bank, dat.n_pts);
             model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
             model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
-        elseif strcmp(task, "memorizeclevr")
+        elseif task == "memorizeclevr"
             model = model.InsertComponents(bank, dat.n_pts);
             model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
             model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
             model.compbanks.(bank).cmp_metadata.src_chan = dat.labeldata.foveated_chan; % implicit expansion
-        elseif strcmp(task, "extractconnec")
+        elseif task == "extractconnec"
             max_length = str2double(step{3}); % max length of a connected component (e.g. Inf, 20)
             [newRelations,metadata] = ExtractConnectedPartComponents(model.compbanks.(bank), dat.img_sz, max_length, 1.5);
             model = model.ClearComponents(bank);
             model = model.InsertComponents(bank, size(newRelations, 2));
             model = model.SetEdgeStates(bank, newRelations);
             model.compbanks.(bank).cmp_metadata = metadata;
-        elseif strcmp(task, "transl") % translate
+        elseif task == "transl" % translate
             max_translation_delta = str2double(step{3}); % subscript is an integer representing number of pixels to translate
             max_rot = 0; % max rotation in degrees
             model = TranslateAndRotate(model, bank, dat.img_sz, max_translation_delta, max_rot);
-        elseif strcmp(task, "extractcorr") % extract components from input data based on correlation across datapoints
+        elseif task == "extractcorr" % extract components from input data based on correlation across datapoints
             clusterer = step{3}; % 'kmeans', 'gmm', 'hierarchical<linkage>', 'spectralkmeans<1|2|3>', 'ica'
             k = str2double(step{4});
             max_edges_per_cmp = str2double(step{5});

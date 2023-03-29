@@ -1,3 +1,5 @@
+% Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
+% Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
 % If you use this code, cite:
 %   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
@@ -26,7 +28,7 @@ classdef ComponentBank
             arguments
                 graphType(1,1) GRF, edgeTypeFilter(:,1) EDG, n_nodes(1,1), nodeName, imgsz
             end
-            if ~exist('imgsz', 'var')
+            if ~exist("imgsz", "var")
                 imgsz = [];
             end
             obj.imgsz = imgsz;
@@ -91,7 +93,7 @@ classdef ComponentBank
             % insert new nodes
             origNodes = obj.g.nodes;
             obj.g = obj.g.AddNodes(nodeIDs);
-            if exist('nodeName', 'var') && ~isempty(nodeName)
+            if exist("nodeName", "var") && ~isempty(nodeName)
                 obj.g.node_metadata.name(end-n_new_nodes+1:end) = nodeName;
             end
             
@@ -137,8 +139,8 @@ classdef ComponentBank
 
         % sets
         function obj = SetEdgeStates(obj, edgeStates)
-            assert(size(edgeStates, 1) == size(obj.edge_states, 1), 'use special setter functions if changing number of edges in component bank');
-            assert(size(edgeStates, 2) == size(obj.edge_states, 2), 'use special setter functions if changing number of components in bank');
+            assert(size(edgeStates, 1) == size(obj.edge_states, 1), "use special setter functions if changing number of edges in component bank");
+            assert(size(edgeStates, 2) == size(obj.edge_states, 2), "use special setter functions if changing number of components in bank");
             obj.edge_states = edgeStates;
             obj.Validate();
         end
@@ -164,7 +166,6 @@ classdef ComponentBank
 
         function Validate(obj)
             assert(size(obj.edge_states, 1) == obj.g.n_edges);
-%             assert(numel(obj.edge_states) == 0 || size(obj.edge_states, 1) == obj.g.n_edges);
         end
     end
 end
