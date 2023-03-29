@@ -48,10 +48,10 @@ function [newRelations,metadata] = ExtractConnectedPartComponents(compbank, imgs
         activeNodeIdx = didx(active_edge_mask(:,i),focus_node_idx(i)); % n_active_edges x 1 (index into nodes)
         
         % build our node-->edge map
-        activeRelIdx = find(active_edge_mask(:,i)); % n_active_edges x 1
+        activeEdgeIdx = find(active_edge_mask(:,i)); % n_active_edges x 1
         node_edges_map(:) = {[]}; % empty all cells
         for j = 1 : numel(activeNodeIdx)
-            node_edges_map{activeNodeIdx(j)} = [node_edges_map{activeNodeIdx(j)},activeRelIdx(j)];
+            node_edges_map{activeNodeIdx(j)} = [node_edges_map{activeNodeIdx(j)},activeEdgeIdx(j)];
         end
 
         % find pairs of active nodes that are next to each other (including on the diagonal)

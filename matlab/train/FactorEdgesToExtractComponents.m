@@ -27,7 +27,7 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     nodeActivations = compCode.(bank2Cluster); % n_nodes x n_pts (logical or numeric)
     n_pts = size(nodeActivations, 2);
     
-    if startsWith(mode, 'sup1') || startsWith(mode, 'sup2')
+    if startsWith(mode, "sup1") || startsWith(mode, "sup2")
         assert(dat.n_classes == 2);
         nodeActivations(end+1,:) = logical(dat.label_idx-1);
         didx = NeighborPairs(model.compbanks.(bank2FormCmp).graph_type, model.compbanks.(bank2FormCmp).n_nodes+1);
@@ -37,20 +37,20 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     
     edgeRelations = GetEdgeStates(nodeActivations, didx, model.compbanks.(bank2FormCmp).edge_type_filter);
     
-    if endsWith(mode, 'split')
+    if endsWith(mode, "split")
         edgeStates = EDG([]);
         for c = 1 : dat.n_classes
             currEdgeRelations = edgeRelations(:,dat.label_idx == c);
             
             usedEdgeMsk = (sum(currEdgeRelations, 2) > n_pts * 0.05); % ignore edges that are almost always n/a
         
-            curr = EDG(zeros(n_edges, k_per_class, 'uint8'));
+            curr = EDG(zeros(n_edges, k_per_class, "uint8"));
             curr(usedEdgeMsk,:) = Factor(alg, currEdgeRelations(usedEdgeMsk,:), k_per_class, model.compbanks.(bank2FormCmp).edge_type_filter);
-            if startsWith(mode, 'sup1') % if sup2, leave them in for the below func
+            if startsWith(mode, "sup1") % if sup2, leave them in for the below func
                 curr(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = EDG.NULL; % remove edges to the dv (last node)
             end
             curr(usedEdgeMsk,:) = CropLeastCoOccurringEdges(curr(usedEdgeMsk,:), currEdgeRelations(usedEdgeMsk,:), max_edges_per_cmp);
-            if startsWith(mode, 'sup2')
+            if startsWith(mode, "sup2")
                 curr(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = EDG.NULL; % remove edges to the dv (last node)
             end
             
@@ -59,18 +59,18 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     else
         usedEdgeMsk = (sum(edgeRelations, 2) > n_pts * 0.05); % ignore edges that are almost always n/a
         
-        edgeStates = EDG(zeros(n_edges, k, 'uint8'));
+        edgeStates = EDG(zeros(n_edges, k, "uint8"));
         edgeStates(usedEdgeMsk,:) = Factor(alg, edgeRelations(usedEdgeMsk,:), k, model.compbanks.(bank2FormCmp).edge_type_filter);
-        if startsWith(mode, 'sup1') % if sup2, leave them in for the below func
+        if startsWith(mode, "sup1") % if sup2, leave them in for the below func
             edgeStates(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = EDG.NULL; % remove edges to the dv (last node)
         end
         edgeStates(usedEdgeMsk,:) = CropLeastCoOccurringEdges(edgeStates(usedEdgeMsk,:), edgeRelations(usedEdgeMsk,:), max_edges_per_cmp);
-        if startsWith(mode, 'sup2')
+        if startsWith(mode, "sup2")
             edgeStates(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = EDG.NULL; % remove edges to the dv (last node)
         end
     end
     
-    if startsWith(mode, 'sup1') || startsWith(mode, 'sup2')
+    if startsWith(mode, "sup1") || startsWith(mode, "sup2")
         edgeStates(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = [];
         didx(didx(:,1) == max(didx(:)) | didx(:,2) == max(didx(:)),:) = [];
         assert(all(didx(:) == model.compbanks.(bank2FormCmp).edge_endnode_idx(:)));
@@ -79,7 +79,7 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     % handle too few edges
     nEdgesPerCmp = sum(edgeStates ~= EDG.NULL, 1);
     mask = (nEdgesPerCmp < Config.MIN_EDGES_PER_CMP);
-    disp(['removing ',num2str(sum(mask)),' components for having too few edges']);
+    disp("removing " + num2str(sum(mask)) + " components for having too few edges");
     edgeStates(:,mask) = [];
 
     model = model.ClearComponents(bank2FormCmp);
@@ -91,7 +91,7 @@ end
 
 
 % INPUTS
-%   clusterer      - (char)
+%   alg            - (char)
 %   edges          - n_edges x n_pts (EDG enum)
 %   k              - scalar (int-valued numeric)
 %   edgeTypeFilter - vector (EDG enum)
@@ -99,27 +99,27 @@ function relations = Factor(clusterer, edges, k, edgeTypeFilter)
     assert(k > 1);
     [n_edges,n_pts] = size(edges);
     
-    if startsWith(clusterer, 'ica')
-        if strcmp(clusterer, 'ica')
+    if startsWith(alg, "ica")
+        if alg == "ica"
             icaComponents = fastica(double(Edge2Logical(edges, true))', 'numOfIC', k, 'verbose', 'off');
             relations = Weights2Edge(icaComponents', true);
-        elseif strcmp(clusterer, 'icacrop')
+        elseif alg == "icacrop"
             icaComponents = fastica(double(Edge2Logical(edges, false))', 'numOfIC', k, 'verbose', 'off');
             temp = abs(icaComponents(icaComponents~=0));
             icaComponents(abs(icaComponents) < quantile(temp, 0.25)) = 0; % remove small non-0 weights
             relations = Weights2Edge(icaComponents', false);
-        elseif strcmp(clusterer, 'icacroplots')
+        elseif alg == "icacroplots"
             icaComponents = fastica(double(Edge2Logical(edges, false))', 'numOfIC', k, 'verbose', 'off');
             temp = abs(icaComponents(icaComponents~=0));
             icaComponents(abs(icaComponents) < quantile(temp, 0.75)) = 0; % remove small non-0 weights
             relations = Weights2Edge(icaComponents', false);
-        elseif strcmp(clusterer, 'icacropsome')
+        elseif alg == "icacropsome"
             icaComponents = fastica(double(Edge2Logical(edges, false))', 'numOfIC', k, 'verbose', 'off');
             temp = abs(icaComponents(icaComponents~=0));
             icaComponents(abs(icaComponents) < quantile(temp, 0.5)) = 0; % remove small non-0 weights
             relations = Weights2Edge(icaComponents', false);
         else
-            error('unexpected clusterer');
+            error("unexpected alg");
         end
         relations = FilterEdgeType(relations, edgeTypeFilter);
     else
@@ -135,11 +135,11 @@ function relations = Factor(clusterer, edges, k, edgeTypeFilter)
             data(:,1:D) = []; % remove the originals
         end
         
-        if startsWith(clusterer, 'spectralkmeans')
+        if startsWith(alg, "spectralkmeans")
             data = 1 - squareform(pdist(data, distance)); % n_edges x n_edges (double) pairwise similarity
-            clustMdl = ml.ClustInit(clusterer, k, 'euclidean', 'kmeans++');
+            clustMdl = ml.ClustInit(char(alg), k, 'euclidean', 'kmeans++');
         else
-            clustMdl = ml.ClustInit(clusterer, k, distance, 'random', data);
+            clustMdl = ml.ClustInit(char(alg), k, distance, 'random', data);
         end
         [~,~,idx] = ml.Cluster(clustMdl, data, false, 25);
         
@@ -166,7 +166,7 @@ end
 function relations = CropLeastCoOccurringEdges(relations, edges, max_edges_per_cmp)
     nEdgesPerCmp = sum(relations ~= EDG.NULL, 1); % 1 x n_cmp
     nToRemove = nEdgesPerCmp - max_edges_per_cmp; % 1 x n_cmp
-    disp(['cropping ',num2str(sum(nToRemove > 0)),' components for having ',num2str(sum(nToRemove(nToRemove > 0))),' too many edges in total']);
+    disp("cropping " + num2str(sum(nToRemove > 0)) + " components for having " + num2str(sum(nToRemove(nToRemove > 0))) + " too many edges in total");
 
     if IsJuliaConfigured() && any(nToRemove > 0)
         relations = EDG(Julia(fullfile(fileparts(mfilename('fullpath')), '..', 'julia_code.jl'), 'crop_least_co_occurring_edges', uint8(relations), uint8(edges), nToRemove(:)));
@@ -179,7 +179,7 @@ function relations = CropLeastCoOccurringEdges(relations, edges, max_edges_per_c
 
                 code = (edges(relationIdx,:) == relations(relationIdx,i));
 
-                pDist = squareform(pdist(single(code), 'cosine')); % 1 minus cosine similarity
+                pDist = squareform(pdist(single(code), "cosine")); % 1 minus cosine similarity
                 [~,idx] = max(sum(pDist, 2));
 
                 relations(relationIdx(idx),i) = EDG.NULL;
