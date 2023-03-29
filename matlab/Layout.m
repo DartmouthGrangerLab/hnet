@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   name - (char) name of layout to load
 % RETURNS
@@ -14,93 +16,93 @@ function layout = Layout(name)
 %     layout = jsondecode(fileread(['layout_',name,'.json'])); % json file must be on the matlab path
 
     layout = struct();
-    if strcmp(name, 'basicimg')
+    if strcmp(name, "basicimg")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->out';
-    elseif strcmp(name, 'basiccred')
+    elseif strcmp(name, "basiccred")
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->out';
-    elseif strcmp(name, 'basiccredand')
+    elseif strcmp(name, "basiccredand")
         layout = struct(name='tier1', graph_type=GRF.FULL, edge_type_filter=EDG.AND, encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->out';
-    elseif strcmp(name, 'groupedimg')
+    elseif strcmp(name, "groupedimg")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, 'groupedcred')
+    elseif strcmp(name, "groupedcred")
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, 'groupedwta20img')
+    elseif strcmp(name, "groupedwta20img")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max-->wta.20');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, 'groupedwta20cred')
+    elseif strcmp(name, "groupedwta20cred")
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max-->wta.20');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, 'groupedabsimg')
+    elseif strcmp(name, "groupedabsimg")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='maxabs');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, 'groupedabscred')
+    elseif strcmp(name, "groupedabscred")
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='maxabs');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, 'groupedabswta20img')
+    elseif strcmp(name, "groupedabswta20img")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='maxabs-->wta.20');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, 'groupedabswta20cred')
+    elseif strcmp(name, "groupedabswta20cred")
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='maxabs-->wta.20');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, 'grouptransl2')
+    elseif strcmp(name, "grouptransl2")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energytransl.2');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, 'metaimg') % meta hierarchy for image datasets
+    elseif strcmp(name, "metaimg") % meta hierarchy for image datasets
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy-->wta.20');
         layout.meta          = struct(graph_type=GRF.FULL,   edge_type_filter=[],                    encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
-    elseif strcmp(name, 'metacred') % meta hierarchy for credit datasets
+    elseif strcmp(name, "metacred") % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy-->wta.20');
         layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND],      encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
-    elseif strcmp(name, 'metacredand') % meta hierarchy for credit datasets
+    elseif strcmp(name, "metacredand") % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=EDG.AND, encode_spec='energy-->wta.20');
         layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[],      encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
-    elseif strcmp(name, 'metagrpimg') % meta hierarchy for image datasets
+    elseif strcmp(name, "metagrpimg") % meta hierarchy for image datasets
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.meta          = struct(graph_type=GRF.NULL, edge_type_filter=[], encode_spec='energy');
         layout.metagroup     = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->meta,meta-->metagroup,metagroup-->out';
-    elseif strcmp(name, 'metagrpcred') % meta hierarchy for credit datasets
+    elseif strcmp(name, "metagrpcred") % meta hierarchy for credit datasets
         layout.tier1     = struct(graph_type=GRF.FULL, edge_type_filter=[], encode_spec='energy');
         layout.group     = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.meta      = struct(graph_type=GRF.FULL, edge_type_filter=[], encode_spec='energy');
         layout.metagroup = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->tier1,tier1-->group,group-->meta,meta-->metagroup,metagroup-->out';
-    elseif strcmp(name, 'clevr')
+    elseif strcmp(name, "clevr")
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.meta          = struct(graph_type=GRF.FULL,   edge_type_filter=[EDG.AND],             encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
     else
-        error('unexpected name');
+        error("unexpected name");
     end
     
     %% parse fields
-    if isfield(layout, 'comment')
-        layout = rmfield(layout, 'comment'); % remove a comment if any
+    if isfield(layout, "comment")
+        layout = rmfield(layout, "comment"); % remove a comment if any
     end
     fn = fieldnames(layout);
     for i = 1 : numel(fn)
-        if isfield(layout.(fn{i}), 'graph_type')
+        if isfield(layout.(fn{i}), "graph_type")
             layout.(fn{i}).graph_type = GRF(layout.(fn{i}).graph_type); % convert to enum
         end
-        if isfield(layout.(fn{i}), 'edge_type_filter')
+        if isfield(layout.(fn{i}), "edge_type_filter")
             layout.(fn{i}).edge_type_filter = EDG(layout.(fn{i}).edge_type_filter); % convert to enum
         end
     end

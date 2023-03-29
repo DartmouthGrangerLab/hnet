@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   graphType - scalar (GRF enum)
 %   n_nodes - scalar (int-valued numeric) number of nodes
@@ -23,7 +25,7 @@ function didx = NeighborPairs(graphType, n_nodes, imgsz)
     elseif graphType == GRF.SELF
         didx = neighbor_pairs_self(n_nodes);
     else
-        error('unexpected graphType');
+        error("unexpected graphType");
     end
 end
 

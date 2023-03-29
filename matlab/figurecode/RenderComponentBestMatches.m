@@ -45,7 +45,7 @@ function [] = RenderComponentBestMatches(path, model, dat, code, bank)
     end
     comp2RenderPremergeIdx = code.premerge_idx.(bank)(comp2RenderIdx,1); % convert post-merge feature idx back to pre-merge feature idx
     for i = 1 : min(numel(comp2RenderPremergeIdx), 10)
-        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), code.hist.(bank)(:,comp2RenderIdx(i)), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, [], true, true, dat.pixel_metadata.name, do_pretty, [], lineWidth);
+        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), code.hist.(bank)(:,comp2RenderIdx(i)), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, [], true, true, dat.node_name, do_pretty, [], lineWidth);
         if isempty(img)
             outImgSz = size(currImg);
             img = ones(n_rows * outImgSz(1), n_cols * outImgSz(2) + 48, 3);
@@ -72,7 +72,7 @@ function [] = RenderComponentBestMatches(path, model, dat, code, bank)
     renderRow = 1; % 0-based indexing
     renderCol = 0; % 0-based indexing
     for i = 1 : min(numel(comp2RenderPremergeIdx), 50)
-        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), code.hist.(bank)(:,comp2RenderIdx(i)), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, [], true, true, dat.pixel_metadata.name, do_pretty, [], lineWidth);
+        currImg = PlotGraph(model.compbanks.(tier1Bank).edge_states(:,comp2RenderPremergeIdx(i)), code.hist.(bank)(:,comp2RenderIdx(i)), row, col, model.compbanks.(tier1Bank).edge_endnode_idx, imgSz, [], true, true, dat.node_name, do_pretty, [], lineWidth);
         img(renderRow*outImgSz(1) + 48 + (1:outImgSz(1)),renderCol*outImgSz(1) + (1:outImgSz(2)),:) = currImg;
         renderRow = renderRow + floor((renderCol+1) / n_cols);
         renderCol = mod(renderCol+1, n_cols);

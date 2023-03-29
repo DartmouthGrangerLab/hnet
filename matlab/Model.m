@@ -1,6 +1,8 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % set of ComponentBanks, with connections amonst them
 % currently, we one-to-one connectivity (compbanks{1} is the input to compbanks{2} etc)
 classdef Model
@@ -32,16 +34,16 @@ classdef Model
             for j = 1 : numel(connecSpec)
                 srcdst = strsplit(connecSpec{j}, '-->');
                 
-                warning('off', 'MATLAB:table:RowsAddedExistingVars'); % not a problem
+                warning("off", "MATLAB:table:RowsAddedExistingVars"); % not a problem
                 obj.g = addedge(obj.g, srcdst{1}, srcdst{2});
 
-                assert(~strcmp(srcdst{2}, 'sense')); % reserved word
+                assert(~strcmp(srcdst{2}, "sense")); % reserved word
                 assert(indegree(obj.g, srcdst{2}) == 1); % currently, we only support one input per component bank (for simplicity, so that n_cmp of the input = n_nodes of the output)
             end
             
             fn = fieldnames(layout);
             for i = 1 : numel(fn)
-                if ~strcmp(fn{i}, 'connec')
+                if ~strcmp(fn{i}, "connec")
                     [~,upstreamBanks] = inedges(obj.g, fn{i});
                     obj.g.Nodes.encode_spec{strcmp(obj.g.Nodes.Name, fn{i})} = layout.(fn{i}).encode_spec;
                     if any(strcmp(upstreamBanks, 'sense'))
@@ -63,13 +65,13 @@ classdef Model
         function [compCode,premergeIdx] = EncodeHelper(obj, compCode, premergeIdx, currSrc)
             [~,dstBanks] = outedges(obj.g, currSrc);
             for i = 1 : numel(dstBanks)
-                if ~strcmp(dstBanks{i}, 'out')
-                    assert(~isfield(compCode, dstBanks{i}), 'no support for graph cycles');
+                if ~strcmp(dstBanks{i}, "out")
+                    assert(~isfield(compCode, dstBanks{i}), "no support for graph cycles");
                     [compCode.(dstBanks{i}),premergeIdx.(dstBanks{i})] = Encode(obj.compbanks.(dstBanks{i}), compCode.(currSrc), obj.g.Nodes.encode_spec{findnode(obj.g, dstBanks{i})});
                 end
             end
             for i = 1 : numel(dstBanks)
-                if ~strcmp(dstBanks{i}, 'out')
+                if ~strcmp(dstBanks{i}, "out")
                     [compCode,premergeIdx] = EncodeHelper(obj, compCode, premergeIdx, dstBanks{i}); % recurse
                 end
             end
@@ -91,7 +93,7 @@ classdef Model
         function [row,col] = PixelCoords(obj, bank, imgSz)
             row = zeros(1, obj.compbanks.(bank).n_cmp);
             col = zeros(1, obj.compbanks.(bank).n_cmp);
-            if strcmp(bank, 'connectedpart')
+            if strcmp(bank, "connectedpart")
                 [pxRow,pxCol] = PixelRowCol(imgSz);
             else
                 pxRow = [];
@@ -120,7 +122,7 @@ classdef Model
             [~,downstreamBanks] = outedges(obj.g, bank);
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
-                if ~strcmp(str, 'out')
+                if ~strcmp(str, "out")
                     obj.compbanks.(str) = obj.compbanks.(str).InsertNodes(obj.compbanks.(str).g.n_nodes + (1:n_new), obj.compbanks.(bank).cmp_name(end-n_new+1:end));
                 end
             end
@@ -137,7 +139,7 @@ classdef Model
             [~,downstreamBanks] = outedges(obj.g, bank);
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
-                if ~strcmp(str, 'out')
+                if ~strcmp(str, "out")
                     obj.compbanks.(str) = obj.compbanks.(str).RemoveNodes(obj.compbanks.(str).g.nodes(~keep));
                 end
             end

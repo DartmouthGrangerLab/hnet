@@ -1,13 +1,15 @@
 % Copyright Brain Engineering Lab at Dartmouth. All rights reserved.
 % Please feel free to use this code for any non-commercial purpose under the CC Attribution-NonCommercial-ShareAlike license: https://creativecommons.org/licenses/by-nc-sa/4.0/
-% If you use this code, cite Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+% If you use this code, cite:
+%   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
+%   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   data - n_edges*EDG.n x n (numeric) edges, as returned by GetRelations
 %   do_include_na - OPTIONAL scalar (logical) (default = true)
 % RETURNS
 %   y - n_edges x n (EDG enum)
 function y = Weights2Edge(x, do_include_na)
-    if ~exist('do_include_na', 'var') || isempty(do_include_na)
+    if ~exist("do_include_na", "var") || isempty(do_include_na)
         do_include_na = true;
     end
     n = size(x, 2);
