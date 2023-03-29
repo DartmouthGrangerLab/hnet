@@ -30,15 +30,15 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     % print dataset info to text files
     temp = cat(2, trnDataset.node_name, num2cell(sum(trnDataset.pixels, 2)));
     writecell(cat(1, {'node_name','num nonzero pixels'}, temp), fullfile(Config.OUT_DIR, ['node_name_',cfg.frontend_spec,'.csv']));
-    if isfield(trnDataset.meta, 'category_info')
+    if isfield(trnDataset.meta, "category_info")
         temp = cat(2, fieldnames(trnDataset.meta.category_info), struct2cell(trnDataset.meta.category_info));
         writecell(cat(1, {'field','value'}, temp), fullfile(Config.OUT_DIR, ['category_info_',cfg.frontend_spec,'.csv']));
     end
-    if isfield(trnDataset.meta, 't')
+    if isfield(trnDataset.meta, "t")
         writetable(trnDataset.meta.t, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_trn.csv']));
         writetable(tstDataset.meta.t, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_tst.csv']));
     end
-    if isfield(trnDataset.meta, 't_bin')
+    if isfield(trnDataset.meta, "t_bin")
         writetable(trnDataset.meta.t_bin, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_bin_trn.csv']));
         writetable(tstDataset.meta.t_bin, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_bin_tst.csv']));
     end
@@ -100,7 +100,7 @@ function [] = Main(modelName, frontendSpec, trnSpec)
 
         % get metadata and pass to PrintEdgeRelations
         node_info = model.compbanks.(bank).g.node_metadata.name;
-        if strcmp(bank, model.tier1_compbank_names{1}) && isfield(tstDataset.meta, 'category_info')
+        if strcmp(bank, model.tier1_compbank_names{1}) && isfield(tstDataset.meta, "category_info")
             for j = 1 : tstDataset.n_nodes
                 if isfield(tstDataset.meta.category_info, node_info{j})
                     node_info{j} = tstDataset.meta.category_info.(node_info{j});
@@ -136,13 +136,13 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     end
 
     %% render discriminability vs sharedness of each component's response to the dataset
-    if ~isfield(model.compbanks, 'meta') && ~isfield(model.compbanks, 'group') && trnDataset.n_classes > 2 % if we only have one tier
+    if ~isfield(model.compbanks, "meta") && ~isfield(model.compbanks, "group") && trnDataset.n_classes > 2 % if we only have one tier
         RenderDiscrimVsSharednessVsFrequency(outDir, model, trnCode, trnDataset, 'trn');
         RenderDiscrimVsSharednessVsFrequency(outDir, model, tstCode, tstDataset, 'tst');
     end
     
     %% render the groups
-    if isfield(model.compbanks, 'group')
+    if isfield(model.compbanks, "group")
         for i = 1 : min(10, model.compbanks.group.n_cmp) % for each group
             RenderGroup(outDir, model, tstDataset, tstCode, i);
         end

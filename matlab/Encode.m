@@ -10,13 +10,13 @@
 % RETURNS
 %   compCode - n_cmp x n_pts (numeric)
 %   premergeIdx
-function [compCode,premergeIdx] = Encode(compbank, data, encodeSpec)
+function [compcode,premergeIdx] = Encode(compbank, data, encodeSpec)
     arguments
         compbank(1,1) ComponentBank, data(:,:), encodeSpec(1,:) char
     end
     validateattributes(data, {'logical','double','single'}, {});
     if compbank.n_cmp == 0
-        compCode = [];
+        compcode = [];
         premergeIdx = [];
         return
     end
@@ -24,42 +24,42 @@ function [compCode,premergeIdx] = Encode(compbank, data, encodeSpec)
     
     t = tic();
 
-    compCode = data;
+    compcode = data;
     steps = strsplit(encodeSpec, '-->');
     for ii = 1 : numel(steps)
         step = strsplit(steps{ii}, '.');
         task = step{1};
 
-        if strcmp(task, "energy")
-            compCode = Energy(compbank, compCode);
-            premergeIdx = repmat((1:compbank.n_cmp)', 1, size(compCode, 2)); % n_groups x n_pts
-        elseif strcmp(task, "max")
+        if task == "energy"
+            compcode = Energy(compbank, compcode);
+            premergeIdx = repmat((1:compbank.n_cmp)', 1, size(compcode, 2)); % n_groups x n_pts
+        elseif task == "max"
             newCompCode = zeros(n_pts, compbank.n_cmp, "single"); % transposed at the end
             premergeIdx = zeros(n_pts, compbank.n_cmp); % transposed at the end
             for i = 1 : compbank.n_cmp
                 idx = find(compbank.edge_states(:,i) ~= EDG.NULL);
                 if ~isempty(idx)
-                    [newCompCode(:,i),premergeIdx(:,i)] = max(compCode(idx,:), [], 1);
+                    [newCompCode(:,i),premergeIdx(:,i)] = max(compcode(idx,:), [], 1);
                     premergeIdx(:,i) = idx(premergeIdx(:,i)); % map back to the full list
                 end
             end
-            compCode = newCompCode';
+            compcode = newCompCode';
             premergeIdx = premergeIdx';
-        elseif strcmp(task, "maxabs")
+        elseif task == "maxabs"
             newCompCode = zeros(n_pts, compbank.n_cmp, "single"); % transposed at the end
             premergeIdx = zeros(n_pts, compbank.n_cmp); % transposed at the end
             for i = 1 : compbank.n_cmp
                 idx = find(compbank.edge_states(:,i) ~= EDG.NULL);
                 if ~isempty(idx)
-                    [newCompCode(:,i),premergeIdx(:,i)] = maxk(compCode(idx,:), 1, 1, 'ComparisonMethod', 'abs'); % energy furthest from zero
+                    [newCompCode(:,i),premergeIdx(:,i)] = maxk(compcode(idx,:), 1, 1, 'ComparisonMethod', 'abs'); % energy furthest from zero
                     premergeIdx(:,i) = idx(premergeIdx(:,i)); % map back to the full list
                 end
             end
-            compCode = newCompCode';
+            compcode = newCompCode';
             premergeIdx = premergeIdx';
-        elseif strcmp(task, "wta")
+        elseif task == "wta"
             n_cmp_per_img = str2double(step{2}); % integer, e.g. 20
-            compCode = logical(ml.KWTA(compCode, n_cmp_per_img)); % n_trn x n_cmp_groups
+            compcode = logical(ml.KWTA(compcode, n_cmp_per_img)); % n_trn x n_cmp_groups
         else
             error("unexpected task");
         end

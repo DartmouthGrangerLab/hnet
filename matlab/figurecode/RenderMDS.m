@@ -22,7 +22,7 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
     
     t = tic();
     
-    h = figure('Visible', 'off', 'defaultAxesFontSize', 12); % default = 10
+    h = figure(Visible="off", defaultAxesFontSize=12); % default = 10
     n_rows = 2 + model.n_compbanks; n_cols = 2; margin = [0.06,0.06];
     
     pDist = squareform(pdist(double(dat.pixels'), distMeasure));
@@ -77,7 +77,7 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
         title(['cmds(logicnet ',bank,' encoding)'], FontSize=10); % default = 11
     end
 
-    fig.print(h, path, ['mds_',append], 'auto', 300);
+    fig.print(h, path, char(['mds_',append]), 'auto', 300);
     
     Toc(t);
 end
@@ -89,30 +89,30 @@ function [] = Helper(data, labelIdx, predLabelIdx, n_classes, mode)
     data = data - min(data, [], 1);
     data = data ./ max(data, [], 1);
 
-    if strcmp(mode, "scatter")
+    if mode == "scatter"
         for i = 1 : numel(labelIdx)
-            scatter3(data(i,1), data(i,2), data(i,3), '*', 'MarkerEdgeColor', color(labelIdx(i),:));
+            scatter3(data(i,1), data(i,2), data(i,3), "*", MarkerEdgeColor=color(labelIdx(i),:));
         end
         xlabel("X"); ylabel("Y"); zlabel("Z");
         grid on
         box on
         view(135, 45);
-    elseif strcmp(mode, "numbers")
+    elseif mode == "numbers"
         for i = 1 : 2 : numel(labelIdx)
-            text(data(i,1), data(i,2), data(i,3), num2str(i), 'Color', color(labelIdx(i),:));
+            text(data(i,1), data(i,2), data(i,3), num2str(i), Color=color(labelIdx(i),:));
         end
         xlabel("X"); ylabel("Y"); zlabel("Z");
         grid on
         box on
         view(135, 45);
-    elseif strcmp(mode, "+/-")
+    elseif mode == "+/-"
         fig.Plot3DScatterWithShadows(gcf(), data(:,1), data(:,2), data(:,3), [], color(labelIdx,:), '', [], [], [], true, false, true);
         fig.Plot3DScatterWithShadows(gcf(), data(labelIdx(:)==predLabelIdx(:),1), data(labelIdx(:)==predLabelIdx(:),2), data(labelIdx(:)==predLabelIdx(:),3), [], color(labelIdx(labelIdx(:)==predLabelIdx(:)),:), '+', [], [], [], false, true);
         fig.Plot3DScatterWithShadows(gcf(), data(labelIdx(:)~=predLabelIdx(:),1), data(labelIdx(:)~=predLabelIdx(:),2), data(labelIdx(:)~=predLabelIdx(:),3), [], color(labelIdx(labelIdx(:)~=predLabelIdx(:)),:), '_', [], [], [], false, true);
     else
         error("unexpected mode");
     end
-    set(gca, 'TickLength', [0,0]);
+    set(gca, "TickLength", [0,0]);
     xLims = xlim();
     yLims = ylim();
     zLims = zlim();
