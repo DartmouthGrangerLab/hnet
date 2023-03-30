@@ -16,76 +16,76 @@ function layout = Layout(name)
 %     layout = jsondecode(fileread(['layout_',name,'.json'])); % json file must be on the matlab path
 
     layout = struct();
-    if strcmp(name, "basicimg")
+    if name == "basicimg"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->out';
-    elseif strcmp(name, "basiccred")
+    elseif name == "basiccred"
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->out';
-    elseif strcmp(name, "basiccredand")
+    elseif name == "basiccredand"
         layout = struct(name='tier1', graph_type=GRF.FULL, edge_type_filter=EDG.AND, encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->out';
-    elseif strcmp(name, "groupedimg")
+    elseif name == "groupedimg"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, "groupedcred")
+    elseif name == "groupedcred"
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, "groupedwta20img")
+    elseif name == "groupedwta20img"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max-->wta.20');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, "groupedwta20cred")
+    elseif name == "groupedwta20cred"
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max-->wta.20');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, "groupedabsimg")
+    elseif name == "groupedabsimg"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='maxabs');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, "groupedabscred")
+    elseif name == "groupedabscred"
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='maxabs');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, "groupedabswta20img")
+    elseif name == "groupedabswta20img"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='maxabs-->wta.20');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, "groupedabswta20cred")
+    elseif name == "groupedabswta20cred"
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.group = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='maxabs-->wta.20');
         layout.connec = 'sense-->tier1,tier1-->group,group-->out';
-    elseif strcmp(name, "grouptransl2")
+    elseif name == "grouptransl2"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energytransl.2');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->out';
-    elseif strcmp(name, "metaimg") % meta hierarchy for image datasets
+    elseif name == "metaimg" % meta hierarchy for image datasets
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy-->wta.20');
         layout.meta          = struct(graph_type=GRF.FULL,   edge_type_filter=[],                    encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
-    elseif strcmp(name, "metacred") % meta hierarchy for credit datasets
+    elseif name == "metacred" % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy-->wta.20');
         layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND],      encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
-    elseif strcmp(name, "metacredand") % meta hierarchy for credit datasets
+    elseif name == "metacredand" % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=EDG.AND, encode_spec='energy-->wta.20');
         layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[],      encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
-    elseif strcmp(name, "metagrpimg") % meta hierarchy for image datasets
+    elseif name == "metagrpimg" % meta hierarchy for image datasets
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.meta          = struct(graph_type=GRF.NULL, edge_type_filter=[], encode_spec='energy');
         layout.metagroup     = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->meta,meta-->metagroup,metagroup-->out';
-    elseif strcmp(name, "metagrpcred") % meta hierarchy for credit datasets
+    elseif name == "metagrpcred" % meta hierarchy for credit datasets
         layout.tier1     = struct(graph_type=GRF.FULL, edge_type_filter=[], encode_spec='energy');
         layout.group     = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.meta      = struct(graph_type=GRF.FULL, edge_type_filter=[], encode_spec='energy');
         layout.metagroup = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->tier1,tier1-->group,group-->meta,meta-->metagroup,metagroup-->out';
-    elseif strcmp(name, "clevr")
+    elseif name == "clevr"
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.meta          = struct(graph_type=GRF.FULL,   edge_type_filter=[EDG.AND],             encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
@@ -115,9 +115,9 @@ function layout = Layout(name)
     validateattributes(layout, {'struct'}, {'nonempty','scalar'});
     fn = fieldnames(layout);
     for id = 1 : numel(fn)
-        assert(~strcmpi(fn{i}, 'sense') && ~strcmpi(fn{i}, 'label')); % reserved
+        assert(~strcmpi(fn{i}, "sense") && ~strcmpi(fn{i}, "label")); % reserved
         validateattributes(layout.(fn{i}), {'struct','char'}, {'nonempty'});
-        if strcmp(fn{i}, 'connec')
+        if strcmp(fn{i}, "connec")
             validateattributes(layout.(fn{i}), 'char', {'nonempty'});
         else
             validateattributes(layout.(fn{i}).graph_type,       'GRF',  {'nonempty','scalar','positive','integer'});

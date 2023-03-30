@@ -8,7 +8,7 @@
 %   data
 %   encodeSpec
 % RETURNS
-%   compCode - n_cmp x n_pts (numeric)
+%   compcode - n_cmp x n_pts (numeric)
 %   premergeIdx
 function [compcode,premergeIdx] = Encode(compbank, data, encodeSpec)
     arguments

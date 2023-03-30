@@ -11,8 +11,8 @@ classdef Dataset
     end
     properties
         pixels    (:,:)      % n_nodes x n 
-        node_name (:,1) cell % n_nodes x 1
         label_idx (:,1)      % n x 1
+        node_name (:,1) cell % n_nodes x 1
         meta      (1,1) struct = struct()
         labeldata (1,1) struct
     end
@@ -25,29 +25,29 @@ classdef Dataset
 
     methods
         function obj = Dataset(frontendSpec, trnOrTst) % constructor
+            arguments
+                frontendSpec, trnOrTst
+            end
             obj.frontend_spec = frontendSpec;
             spec = frontendSpec;
-            if any(frontendSpec == '.')
-                temp = strsplit(frontendSpec, '.');
+            if contains(frontendSpec, ".")
+                temp = strsplit(frontendSpec, ".");
                 spec = temp{1};
                 n_per_class = Str2Double(temp{2}); % only used if trnOrTst = 'trn'
             end
             
-            is_trn = false;
-            if strcmp(trnOrTst, 'trn')
-                is_trn = true;
-            end
+            is_trn = (trnOrTst == "trn");
 
-            if strcmp(spec, 'mnistpy') || strcmp(spec, 'mnistmat') || strcmp(spec, 'fashion') || strcmp(spec, 'emnistletters')
-                if strcmp(spec, 'mnistpy')
+            if (spec == "mnistpy") || (spec == "mnistmat") || (spec == "fashion") || (spec == "emnistletters")
+                if strcmp(spec, "mnistpy")
                     % clear classes
-                    python_code = py.importlib.import_module('python_code');
+                    python_code = py.importlib.import_module("python_code");
                     py.importlib.reload(python_code);
                     if is_trn
                         if isnan(n_per_class)
                             x = struct(python_code.dataset(is_trn, int64(-1)));
                         else
-                            assert(n_per_class <= 5421, 'n_per_class must be <= 5421 (or NaN = all)');
+                            assert(n_per_class <= 5421, "n_per_class must be <= 5421 (or NaN = all)");
                             x = struct(python_code.dataset(is_trn, int64(n_per_class)));
                         end
                     else
@@ -63,20 +63,20 @@ classdef Dataset
                     dataset.sense = {img};
                     dataset.class_idx = labelIdx;
                     dataset.uniq_class = {'0','1','2','3','4','5','6','7','8','9'};
-                elseif strcmp(spec, 'mnistmat')
+                elseif strcmp(spec, "mnistmat")
                     if is_trn
                         assert(isnan(n_per_class) || n_per_class <= 5421, 'n_per_class must be <= 5421 (or NaN = all)');
                         load(fullfile('..', 'datasets', 'img_captchas', 'mnist.trn-eqn-img-vec-noise.mat'), 'dataset'); % requires MatlabCommon
                     else
                         load(fullfile('..', 'datasets', 'img_captchas', 'mnist.tst-eqn-img-vec-noise.mat'), 'dataset'); % requires MatlabCommon
                     end
-                elseif strcmp(spec, 'fashion')
+                elseif strcmp(spec, "fashion")
                     if is_trn
                         load(fullfile('..', 'datasets', 'img_captchas', 'fashionmnist.trn-eqn-img-vec-noise.mat'), 'dataset'); % requires MatlabCommon
                     else
                         load(fullfile('..', 'datasets', 'img_captchas', 'fashionmnist.tst-eqn-img-vec-noise.mat'), 'dataset'); % requires MatlabCommon
                     end
-                elseif strcmp(spec, 'emnistletters')
+                elseif strcmp(spec, "emnistletters")
                     if is_trn
                         load(fullfile('..', 'datasets', 'img_captchas', 'emnist.byclasstrnlower-eqn-img-vec-noise.mat'), 'dataset'); % requires MatlabCommon
                     else
@@ -94,13 +94,13 @@ classdef Dataset
                     obj.node_name{j} = ['px_r',num2str(row(j)),'_c',num2str(col(j))];
                 end
                 
-                if is_trn && ~strcmp(spec, 'mnistpy')
+                if is_trn && ~strcmp(spec, "mnistpy")
                     idx = EqualizeN(obj.label_idx, n_per_class); % permanently reduce the number of images, while equalizing N
                 else
                     idx = EqualizeN(obj.label_idx); % just equalize N
                 end
                 obj = obj.SubsetDatapoints(idx);
-            elseif strcmp(spec, 'ucicredit')
+            elseif spec == "ucicredit"
                 % load
                 obj.meta = io.LoadCredit('uci_credit_screening', fullfile('..', 'datasets', 'credit', 'uci_credit_screening'));
                 
@@ -141,7 +141,7 @@ classdef Dataset
                         obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
                     end
                 end
-            elseif strcmp(spec, 'ucicreditaustralian')
+            elseif spec == "ucicreditaustralian"
                 % load
                 obj.meta = io.LoadCredit('uci_statlog_australian_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_australian_credit'));
                 
@@ -181,7 +181,7 @@ classdef Dataset
                         obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
                     end
                 end
-            elseif strcmp(spec, 'ucicreditgerman')
+            elseif spec == "ucicreditgerman"
                 % load
                 obj.meta = io.LoadCredit('uci_statlog_german_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_german_credit'));
                 % continuous vars: a2_duration, a5_creditscore, a8_percent (uniques=1,2,3,4), a11_presentresidencesince (uniques=1,2,3,4), a13_age, 16_ncredits (uniques={1,2,3,4}), a18_ndependents (uniques=1,2)
@@ -235,10 +235,9 @@ classdef Dataset
                         end
                     end
                 end
-            elseif strcmp(spec, 'clevr')
-                obj.labeldata = CachedCompute(@LoadAndBinarizeCLEVR, is_trn);
-
+            elseif spec == "clevr"
                 obj.img_sz = [80,120,24];
+                obj.labeldata = CachedCompute(@LoadAndBinarizeCLEVR, is_trn);
 
                 if is_trn
                     colors = cast([ ...
@@ -342,9 +341,9 @@ classdef Dataset
                         imwrite(img5, ['./clevr_img',num2str(i),'_numberedrelationsfoveated.png']);
                     end
                 end
-                error('clevr implementation incomplete')
+                error("clevr implementation incomplete")
             else
-                error('unexpected frontend spec');
+                error("unexpected frontend spec");
             end
         end
 
