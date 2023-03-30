@@ -33,7 +33,7 @@ classdef Dataset
             if contains(frontendSpec, ".")
                 temp = strsplit(frontendSpec, ".");
                 spec = temp{1};
-                n_per_class = Str2Double(temp{2}); % only used if trnOrTst = 'trn'
+                n_per_class = Str2Double(temp{2}); % only used if trnOrTst == "trn"
             end
             
             is_trn = (trnOrTst == "trn");
@@ -54,7 +54,7 @@ classdef Dataset
                         x = struct(python_code.dataset(is_trn, int64(-1)));
                     end
                     pixels = logical(x.data); % n_trn x 784 (comes in as uint8)
-                    labelIdx = double(x.label_idx) + 1; % 1 x n_trn (comes in as uint8) indexes into uniq_classes
+                    labelIdx = double(x.label_idx) + 1; % n_trn x 1 (comes in as uint8) indexes into uniq_classes
                     pixels = pixels';
                     img = reshape(pixels, 28, 28, []);
                     img = permute(img, [2,1,3]); % the data from python are transposed
@@ -100,138 +100,140 @@ classdef Dataset
                     idx = EqualizeN(obj.label_idx); % just equalize N
                 end
                 obj = obj.SubsetDatapoints(idx);
-            elseif spec == "ucicredit"
-                % load
-                obj.meta = io.LoadCredit('uci_credit_screening', fullfile('..', 'datasets', 'credit', 'uci_credit_screening'));
-                
-                % equalize n
-                idx = EqualizeN(double(obj.meta.t.dv) + 1);
-                obj.meta.t = obj.meta.t(idx,:);
-                obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                
-                % split trn from tst (keeping dv balanced)
-                idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
-                if is_trn
+            elseif (spec == "ucicredit") || (spec == "ucicreditaustralian") || (spec == "ucicreditgerman")
+                if spec == "ucicredit"
+                    % load
+                    obj.meta = io.LoadCredit('uci_credit_screening', fullfile('..', 'datasets', 'credit', 'uci_credit_screening'));
+                    
+                    % equalize n
+                    idx = EqualizeN(double(obj.meta.t.dv) + 1);
                     obj.meta.t = obj.meta.t(idx,:);
                     obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                else
-                    obj.meta.t(idx,:) = [];
-                    obj.meta.t_bin(idx,:) = [];
-                end
-                
-                % separate the dv
-                obj.label_idx = double(obj.meta.t.dv) + 1;
-                obj.uniq_classes = {'-','+'}; % according to documentation, "1 = good, 2 = bad"
-                obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
-                
-                % extract node info
-                logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
-                obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
-                obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
-                
-                % add binned versions of the non-logical fields
-                n_spatial_stops = 5;
-                nonlogicalIdx = find(~logicalMsk);
-                for j = 1 : numel(nonlogicalIdx) % all of these vars are sparse (rarely far from zero)
-                    data = encode.TransformScalar2SpatialScalar(normalize(table2array(obj.meta.t_bin(:,nonlogicalIdx(j))), 'range'), n_spatial_stops);
-%                     data = encode.TransformScalar2SpikeViaThresh(sense, thresh);
-                    data = encode.TransformScalar2SpikeViaKWTA(data, 1, 2, []);
-                    obj.pixels = cat(1, obj.pixels, data');
-                    for k = 1 : n_spatial_stops
-                        obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
-                    end
-                end
-            elseif spec == "ucicreditaustralian"
-                % load
-                obj.meta = io.LoadCredit('uci_statlog_australian_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_australian_credit'));
-                
-                % equalize n
-                idx = EqualizeN(double(obj.meta.t.dv) + 1);
-                obj.meta.t = obj.meta.t(idx,:);
-                obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                
-                % split trn from tst (keeping dv balanced)
-                idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
-                if is_trn
-                    obj.meta.t = obj.meta.t(idx,:);
-                    obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                else
-                    obj.meta.t(idx,:) = [];
-                    obj.meta.t_bin(idx,:) = [];
-                end
-                
-                % separate the dv
-                obj.label_idx = double(obj.meta.t.dv) + 1;
-                obj.uniq_classes = {'-','+'}; % according to documentation, "1 = good, 2 = bad"
-                obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
-                
-                % extract node info
-                logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
-                obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
-                obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
-                
-                % add binned versions of the non-logical fields
-                n_spatial_stops = 5;
-                nonlogicalIdx = find(~logicalMsk);
-                for j = 1 : numel(nonlogicalIdx) % all of these vars are sparse (rarely far from zero)
-                    data = encode.TransformScalar2SpatialScalar(normalize(table2array(obj.meta.t_bin(:,nonlogicalIdx(j))), 'range'), n_spatial_stops);
-                    data = encode.TransformScalar2SpikeViaKWTA(data, 1, 2, []);
-                    obj.pixels = cat(1, obj.pixels, data');
-                    for k = 1 : n_spatial_stops
-                        obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
-                    end
-                end
-            elseif spec == "ucicreditgerman"
-                % load
-                obj.meta = io.LoadCredit('uci_statlog_german_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_german_credit'));
-                % continuous vars: a2_duration, a5_creditscore, a8_percent (uniques=1,2,3,4), a11_presentresidencesince (uniques=1,2,3,4), a13_age, 16_ncredits (uniques={1,2,3,4}), a18_ndependents (uniques=1,2)
-                
-                % equalize n
-                idx = EqualizeN(double(obj.meta.t.dv) + 1);
-                obj.meta.t = obj.meta.t(idx,:);
-                obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                
-                % split trn from tst (keeping dv balanced)
-                idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
-                if is_trn
-                    obj.meta.t = obj.meta.t(idx,:);
-                    obj.meta.t_bin = obj.meta.t_bin(idx,:);
-                else
-                    obj.meta.t(idx,:) = [];
-                    obj.meta.t_bin(idx,:) = [];
-                end
-                
-                % separate the dv
-                obj.label_idx = double(obj.meta.t.dv) + 1;
-                obj.uniq_classes = {'good','bad'}; % according to documentation, "1 = good, 2 = bad"
-                obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
-                
-                % extract node info
-                logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
-                obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
-                obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
-                
-                % add binned versions of the non-logical fields
-                n_spatial_stops = 5;
-                nonlogicalIdx = find(~logicalMsk);
-                for j = 1 : numel(nonlogicalIdx) % 1 and 2 are sparse
-                    varName = obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)};
-                    if strcmp(varName, 'a8_percent') || strcmp(varName, 'a11_presentresidencesince') || strcmp(varName, '16_ncredits')
-                        % all three vars hold integer values 1,2,3,4 - treat as categorical
-                        for k = 1 : 4
-                            obj.pixels = cat(1, obj.pixels, obj.meta.t_bin.(varName)' == k);
-                            obj.node_name{end+1} = [varName,'_',num2str(k)];
-                        end
-                    elseif strcmp(varName, 'a18_ndependents') % takes integer values 1,2 - treat as binary
-                        obj.meta.t_bin.a18_ndependents = (obj.meta.t_bin.a18_ndependents == 2);
-                        obj.pixels = cat(1, obj.pixels, obj.meta.t_bin.a18_ndependents');
-                        obj.node_name{end+1} = 'a18_ndependents';
+                    
+                    % split trn from tst (keeping dv balanced)
+                    idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
+                    if is_trn
+                        obj.meta.t = obj.meta.t(idx,:);
+                        obj.meta.t_bin = obj.meta.t_bin(idx,:);
                     else
+                        obj.meta.t(idx,:) = [];
+                        obj.meta.t_bin(idx,:) = [];
+                    end
+                    
+                    % separate the dv
+                    obj.label_idx = double(obj.meta.t.dv) + 1;
+                    obj.uniq_classes = {'-','+'}; % according to documentation, "1 = good, 2 = bad"
+                    obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
+                    
+                    % extract node info
+                    logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
+                    obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
+                    obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
+                    
+                    % add binned versions of the non-logical fields
+                    n_spatial_stops = 5;
+                    nonlogicalIdx = find(~logicalMsk);
+                    for j = 1 : numel(nonlogicalIdx) % all of these vars are sparse (rarely far from zero)
+                        data = encode.TransformScalar2SpatialScalar(normalize(table2array(obj.meta.t_bin(:,nonlogicalIdx(j))), 'range'), n_spatial_stops);
+    %                     data = encode.TransformScalar2SpikeViaThresh(sense, thresh);
+                        data = encode.TransformScalar2SpikeViaKWTA(data, 1, 2, []);
+                        obj.pixels = cat(1, obj.pixels, data');
+                        for k = 1 : n_spatial_stops
+                            obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
+                        end
+                    end
+                elseif spec == "ucicreditaustralian"
+                    % load
+                    obj.meta = io.LoadCredit('uci_statlog_australian_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_australian_credit'));
+                    
+                    % equalize n
+                    idx = EqualizeN(double(obj.meta.t.dv) + 1);
+                    obj.meta.t = obj.meta.t(idx,:);
+                    obj.meta.t_bin = obj.meta.t_bin(idx,:);
+                    
+                    % split trn from tst (keeping dv balanced)
+                    idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
+                    if is_trn
+                        obj.meta.t = obj.meta.t(idx,:);
+                        obj.meta.t_bin = obj.meta.t_bin(idx,:);
+                    else
+                        obj.meta.t(idx,:) = [];
+                        obj.meta.t_bin(idx,:) = [];
+                    end
+                    
+                    % separate the dv
+                    obj.label_idx = double(obj.meta.t.dv) + 1;
+                    obj.uniq_classes = {'-','+'}; % according to documentation, "1 = good, 2 = bad"
+                    obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
+                    
+                    % extract node info
+                    logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
+                    obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
+                    obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
+                    
+                    % add binned versions of the non-logical fields
+                    n_spatial_stops = 5;
+                    nonlogicalIdx = find(~logicalMsk);
+                    for j = 1 : numel(nonlogicalIdx) % all of these vars are sparse (rarely far from zero)
                         data = encode.TransformScalar2SpatialScalar(normalize(table2array(obj.meta.t_bin(:,nonlogicalIdx(j))), 'range'), n_spatial_stops);
                         data = encode.TransformScalar2SpikeViaKWTA(data, 1, 2, []);
                         obj.pixels = cat(1, obj.pixels, data');
                         for k = 1 : n_spatial_stops
                             obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
+                        end
+                    end
+                elseif spec == "ucicreditgerman"
+                    % load
+                    obj.meta = io.LoadCredit('uci_statlog_german_credit', fullfile('..', 'datasets', 'credit', 'uci_statlog_german_credit'));
+                    % continuous vars: a2_duration, a5_creditscore, a8_percent (uniques=1,2,3,4), a11_presentresidencesince (uniques=1,2,3,4), a13_age, 16_ncredits (uniques={1,2,3,4}), a18_ndependents (uniques=1,2)
+                    
+                    % equalize n
+                    idx = EqualizeN(double(obj.meta.t.dv) + 1);
+                    obj.meta.t = obj.meta.t(idx,:);
+                    obj.meta.t_bin = obj.meta.t_bin(idx,:);
+                    
+                    % split trn from tst (keeping dv balanced)
+                    idx = RandSubsetDataset(double(obj.meta.t.dv) + 1, 0.5, RandStream('simdTwister', 'Seed', 77)); % must produce the same random sampling every time
+                    if is_trn
+                        obj.meta.t = obj.meta.t(idx,:);
+                        obj.meta.t_bin = obj.meta.t_bin(idx,:);
+                    else
+                        obj.meta.t(idx,:) = [];
+                        obj.meta.t_bin(idx,:) = [];
+                    end
+                    
+                    % separate the dv
+                    obj.label_idx = double(obj.meta.t.dv) + 1;
+                    obj.uniq_classes = {'good','bad'}; % according to documentation, "1 = good, 2 = bad"
+                    obj.meta.t_bin = removevars(obj.meta.t_bin, 'dv');
+                    
+                    % extract node info
+                    logicalMsk = strcmp(varfun(@class, obj.meta.t_bin, 'OutputFormat', 'cell'), 'logical');
+                    obj.node_name = obj.meta.t_bin.Properties.VariableNames(logicalMsk); % MUST be below the above lines
+                    obj.pixels = table2array(obj.meta.t_bin(:,logicalMsk))'; % numel(obj.meta.pixel_names) x size(obj.meta.t, 1)
+                    
+                    % add binned versions of the non-logical fields
+                    n_spatial_stops = 5;
+                    nonlogicalIdx = find(~logicalMsk);
+                    for j = 1 : numel(nonlogicalIdx) % 1 and 2 are sparse
+                        varName = obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)};
+                        if strcmp(varName, 'a8_percent') || strcmp(varName, 'a11_presentresidencesince') || strcmp(varName, '16_ncredits')
+                            % all three vars hold integer values 1,2,3,4 - treat as categorical
+                            for k = 1 : 4
+                                obj.pixels = cat(1, obj.pixels, obj.meta.t_bin.(varName)' == k);
+                                obj.node_name{end+1} = [varName,'_',num2str(k)];
+                            end
+                        elseif strcmp(varName, 'a18_ndependents') % takes integer values 1,2 - treat as binary
+                            obj.meta.t_bin.a18_ndependents = (obj.meta.t_bin.a18_ndependents == 2);
+                            obj.pixels = cat(1, obj.pixels, obj.meta.t_bin.a18_ndependents');
+                            obj.node_name{end+1} = 'a18_ndependents';
+                        else
+                            data = encode.TransformScalar2SpatialScalar(normalize(table2array(obj.meta.t_bin(:,nonlogicalIdx(j))), 'range'), n_spatial_stops);
+                            data = encode.TransformScalar2SpikeViaKWTA(data, 1, 2, []);
+                            obj.pixels = cat(1, obj.pixels, data');
+                            for k = 1 : n_spatial_stops
+                                obj.node_name{end+1} = [obj.meta.t_bin.Properties.VariableNames{nonlogicalIdx(j)},'_',num2str(k)];
+                            end
                         end
                     end
                 end
