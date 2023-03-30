@@ -114,8 +114,10 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     end
 
     %% explain each tst datapoint
-    RenderTstToExplain(outDir, model, tstdat, tstCode, model.output_bank_name, true);
-    RenderTstToExplain(outDir, model, tstdat, tstCode, model.output_bank_name, false);
+    if modelName == "metacred"
+        RenderTstToExplain(outDir, model, tstdat, tstCode, model.output_bank_name, true);
+        RenderTstToExplain(outDir, model, tstdat, tstCode, model.output_bank_name, false);
+    end
     
     %% render component best matches
     for i = 1 : numel(model.tier1_compbank_names)
@@ -123,7 +125,7 @@ function [] = Main(modelName, frontendSpec, trnSpec)
         RenderComponentBestMatches(outDir, model, tstdat, tstCode, model.tier1_compbank_names{i});
         [~,downstreamBankNames] = outedges(model.g, model.tier1_compbank_names{i});
         for j = 1 : numel(downstreamBankNames)
-            if ~strcmp(downstreamBankNames{j}, 'out')
+            if ~strcmp(downstreamBankNames{j}, "out")
                 RenderComponentBestMatches(outDir, model, tstdat, tstCode, downstreamBankNames{j});
             end
         end
