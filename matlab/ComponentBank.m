@@ -48,6 +48,7 @@ classdef ComponentBank
                 obj.g = obj.g.AddEdges(didx(:,1), didx(:,2));
             end
 
+             % populate graph metadata fields
             if exist('nodeName', 'var') && ~isempty(nodeName)
                 obj.g.node_metadata.name(:) = nodeName;
             end

@@ -10,9 +10,40 @@
 % RETURNS
 %   compcode - n_cmp x n_pts (numeric)
 %   premergeIdx
-function [compcode,premergeIdx] = Encode(compbank, data, encodeSpec)
+% INPUTS
+%   model - scalar (Model)
+%   sense - n_nodes x n_pts (logical) e.g. dat.pixels
+% RETURNS
+%   compCode - struct of n_cmp x n_pts numerics, one field per bank
+%   premergeIdx - struct of numerics, one field per bank
+function [compcode,premergeidx] = Encode(model, sense)
     arguments
-        compbank(1,1) ComponentBank, data(:,:), encodeSpec(1,:) char
+        model(1,1) Model, sense(:,:) {mustBeLogical}
+    end
+    assert(size(sense, 1) == model.n_sense);
+    [compcode,premergeidx] = Helper(model, struct(sense=sense), struct(sense=[]), "sense");
+end
+
+
+function [compcode,premergeidx] = Helper(model, compcode, premergeidx, currSrc)
+    [~,dstBanks] = outedges(model.g, currSrc);
+    for i = 1 : numel(dstBanks)
+        if dstBanks{i} ~= "out"
+            assert(~isfield(compcode, dstBanks{i}), "no support for graph cycles");
+            [compcode.(dstBanks{i}),premergeidx.(dstBanks{i})] = BankEncode(model.compbanks.(dstBanks{i}), compcode.(currSrc), model.g.Nodes.encode_spec{findnode(model.g, dstBanks{i})});
+        end
+    end
+    for i = 1 : numel(dstBanks)
+        if dstBanks{i} ~= "out"
+            [compcode,premergeidx] = Helper(model, compcode, premergeidx, dstBanks{i}); % recurse
+        end
+    end
+end
+
+
+function [compcode,premergeIdx] = BankEncode(compbank, data, encodespec)
+    arguments
+        compbank(1,1) ComponentBank, data(:,:), encodespec(1,:) char
     end
     validateattributes(data, {'logical','double','single'}, {});
     if compbank.n_cmp == 0
@@ -25,9 +56,9 @@ function [compcode,premergeIdx] = Encode(compbank, data, encodeSpec)
     t = tic();
 
     compcode = data;
-    steps = strsplit(encodeSpec, '-->');
+    steps = strsplit(encodespec, "-->");
     for ii = 1 : numel(steps)
-        step = strsplit(steps{ii}, '.');
+        step = strsplit(steps{ii}, ".");
         task = step{1};
 
         if task == "energy"
@@ -51,7 +82,7 @@ function [compcode,premergeIdx] = Encode(compbank, data, encodeSpec)
             for i = 1 : compbank.n_cmp
                 idx = find(compbank.edge_states(:,i) ~= EDG.NULL);
                 if ~isempty(idx)
-                    [newCompCode(:,i),premergeIdx(:,i)] = maxk(compcode(idx,:), 1, 1, 'ComparisonMethod', 'abs'); % energy furthest from zero
+                    [newCompCode(:,i),premergeIdx(:,i)] = maxk(compcode(idx,:), 1, 1, ComparisonMethod="abs"); % energy furthest from zero
                     premergeIdx(:,i) = idx(premergeIdx(:,i)); % map back to the full list
                 end
             end

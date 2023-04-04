@@ -69,8 +69,8 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     trnCode = struct();
     tstCode = struct();
 
-    [trnCode.comp_code,trnCode.premerge_idx] = Encode(model, trndat);
-    [tstCode.comp_code,tstCode.premerge_idx] = Encode(model, tstdat);
+    [trnCode.comp_code,trnCode.premerge_idx] = Encode(model, trndat.pixels);
+    [tstCode.comp_code,tstCode.premerge_idx] = Encode(model, tstdat.pixels);
 
     trnCode.hist = struct();
     tstCode.hist = struct();
@@ -89,7 +89,8 @@ function [] = Main(modelName, frontendSpec, trnSpec)
 
     %% print accuracy and related stats
     PrintPerformance(model, trndat, tstdat, trnCode.comp_code.(model.output_bank_name), tstCode.comp_code.(model.output_bank_name), [cfg.model_name,'_',cfg.trn_spec], cfg.frontend_spec);
-    
+    return; %TEMP
+
     %% render the edges involved in each component
     for i = 1 : model.n_compbanks
         bank = model.compbank_names{i};
@@ -200,6 +201,8 @@ function [] = Main(modelName, frontendSpec, trnSpec)
         predName = [predName,'svm'];
     catch ex
         warning(ex.message);
+        disp("terminating figure code early due to above issue");
+        return
     end
 
     for c = 1 : trndat.n_classes

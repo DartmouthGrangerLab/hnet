@@ -43,7 +43,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
     [~,idx(:,8)] = mink(discriminability+sharedness, 2);        discriminability(idx(:,8)) = NaN; sharedness(idx(:,8)) = NaN; % never choose again
     [~,idx(:,9)] = mink(abs(discriminability+sharedness-1), 2); discriminability(idx(:,9)) = NaN; sharedness(idx(:,9)) = NaN; % never choose again
     
-    h = figure('Visible', 'off', 'defaultAxesFontSize', 18); % default = 10
+    h = figure(Visible="off", defaultAxesFontSize=18); % default = 10
     scatter3(discriminability(~nanMsk), sharedness(~nanMsk), frequency(~nanMsk)');
     for i = 1 : numel(idx)
         text(discriminability(idx(i)), sharedness(idx(i)), frequency(idx(i)), num2str(idx(i)));
@@ -56,13 +56,13 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
     box on
     grid on
     view(135, 45);
-    fig.print(h, Config.OUT_DIR, ['discrimvsshared_',append], [10,10]);
+    fig.print(h, Config.OUT_DIR, char(['discrimvsshared_',append]), [10,10]);
 
     if ~isempty(dat.img_sz)
         [row,col] = PixelRowCol(dat.img_sz);
         lineWidth = 8; % in pixels
 
-        h = figure('Visible', 'off', 'defaultAxesFontSize', 18); hold on; % default = 10
+        h = figure(Visible="off", defaultAxesFontSize=18); hold on; % default = 10
         n_rows = 3; n_cols = 6; margin = [0.05,0.05];
 
         feat2RenderIdx = idx(:);
@@ -83,7 +83,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
             xlabel(num2str(feat2RenderIdx(i))); ylabel("histogram count");
         end
 
-        fig.print(h, path, ['discrimvsshared_examples_',append], 'auto', dpi);
+        fig.print(h, path, char(['discrimvsshared_examples_',append]), 'auto', dpi);
     end
     
     Toc(t);

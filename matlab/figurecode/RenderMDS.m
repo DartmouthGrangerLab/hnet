@@ -84,7 +84,7 @@ end
 
 
 function [] = Helper(data, labelIdx, predLabelIdx, n_classes, mode)
-    color = linspecer(n_classes, 'qualitative');
+    color = linspecer(n_classes, "qualitative");
 
     data = data - min(data, [], 1);
     data = data ./ max(data, [], 1);

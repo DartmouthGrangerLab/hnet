@@ -23,7 +23,7 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
 
     t = tic();
     
-    compCode = Encode(model, dat);
+    compCode = Encode(model, dat.pixels);
     nodeActivations = compCode.(bank2Cluster); % n_nodes x n_pts (logical or numeric)
     n_pts = size(nodeActivations, 2);
     

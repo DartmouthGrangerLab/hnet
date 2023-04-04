@@ -5,12 +5,12 @@
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   x - n_edges x n (EDG enum) edges, as returned by GetRelations
-%   do_include_na - OPTIONAL scalar (logical) (default = true)
+%   do_include_null - OPTIONAL scalar (logical) (default = true)
 % RETURNS
 %   y - n_edges*EDG.n x n (logical)
-function y = Edge2Logical(x, do_include_na)
-    if ~exist("do_include_na", "var") || isempty(do_include_na)
-        do_include_na = true;
+function y = Edge2Logical(x, do_include_null)
+    if ~exist("do_include_null", "var") || isempty(do_include_null)
+        do_include_null = true;
     end
     [n_edges,n] = size(x);
 
@@ -21,8 +21,8 @@ function y = Edge2Logical(x, do_include_na)
         y(:,:,i) = (x == uniqEdgeTypes(i));
     end
     
-    if ~do_include_na
-        y(:,:,1) = []; % remove n/a
+    if ~do_include_null
+        y(:,:,1) = []; % remove nulls
     end
     
     y = permute(y, [1,3,2]);

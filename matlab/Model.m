@@ -32,7 +32,7 @@ classdef Model
             
             connecSpec = ParseList(layout.connec);
             for j = 1 : numel(connecSpec)
-                srcdst = strsplit(connecSpec{j}, '-->');
+                srcdst = strsplit(connecSpec{j}, "-->");
                 
                 warning("off", "MATLAB:table:RowsAddedExistingVars"); % not a problem
                 obj.g = addedge(obj.g, srcdst{1}, srcdst{2});
@@ -43,36 +43,14 @@ classdef Model
             
             fn = fieldnames(layout);
             for i = 1 : numel(fn)
-                if ~strcmp(fn{i}, "connec")
+                if fn{i} ~= "connec"
                     [~,upstreamBanks] = inedges(obj.g, fn{i});
                     obj.g.Nodes.encode_spec{strcmp(obj.g.Nodes.Name, fn{i})} = layout.(fn{i}).encode_spec;
-                    if any(strcmp(upstreamBanks, 'sense'))
+                    if any(strcmp(upstreamBanks, "sense"))
                         obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, n_sense, nodeName, imgSz);
                     else
                         obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, 0, [], imgSz);
                     end
-                end
-            end
-        end
-
-
-        function [compCode,premergeIdx] = Encode(obj, dat)
-            arguments
-                obj, dat(1,1) Dataset
-            end
-            [compCode,premergeIdx] = EncodeHelper(obj, struct(sense=dat.pixels), struct(sense=[]), 'sense');
-        end
-        function [compCode,premergeIdx] = EncodeHelper(obj, compCode, premergeIdx, currSrc)
-            [~,dstBanks] = outedges(obj.g, currSrc);
-            for i = 1 : numel(dstBanks)
-                if ~strcmp(dstBanks{i}, "out")
-                    assert(~isfield(compCode, dstBanks{i}), "no support for graph cycles");
-                    [compCode.(dstBanks{i}),premergeIdx.(dstBanks{i})] = Encode(obj.compbanks.(dstBanks{i}), compCode.(currSrc), obj.g.Nodes.encode_spec{findnode(obj.g, dstBanks{i})});
-                end
-            end
-            for i = 1 : numel(dstBanks)
-                if ~strcmp(dstBanks{i}, "out")
-                    [compCode,premergeIdx] = EncodeHelper(obj, compCode, premergeIdx, dstBanks{i}); % recurse
                 end
             end
         end
@@ -85,7 +63,7 @@ classdef Model
             
             [r,c] = find(obj.compbanks.(grouperBank).edge_states);
             assert(numel(r) == obj.compbanks.(groupedBank).n_cmp); % this function can only handle one-group-per-component
-            idx = zeros(1, obj.compbanks.(groupedBank).n_cmp);
+            idx = zeros(obj.compbanks.(groupedBank).n_cmp, 1);
             idx(r) = c;
         end
 
@@ -93,7 +71,7 @@ classdef Model
         function [row,col] = PixelCoords(obj, bank, imgSz)
             row = zeros(1, obj.compbanks.(bank).n_cmp);
             col = zeros(1, obj.compbanks.(bank).n_cmp);
-            if strcmp(bank, "connectedpart")
+            if bank == "connectedpart"
                 [pxRow,pxCol] = PixelRowCol(imgSz);
             else
                 pxRow = [];
@@ -122,7 +100,7 @@ classdef Model
             [~,downstreamBanks] = outedges(obj.g, bank);
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
-                if ~strcmp(str, "out")
+                if str ~= "out"
                     obj.compbanks.(str) = obj.compbanks.(str).InsertNodes(obj.compbanks.(str).g.n_nodes + (1:n_new), obj.compbanks.(bank).cmp_name(end-n_new+1:end));
                 end
             end
@@ -139,7 +117,7 @@ classdef Model
             [~,downstreamBanks] = outedges(obj.g, bank);
             for i = 1 : numel(downstreamBanks)
                 str = downstreamBanks{i};
-                if ~strcmp(str, "out")
+                if str ~= "out"
                     obj.compbanks.(str) = obj.compbanks.(str).RemoveNodes(obj.compbanks.(str).g.nodes(~keep));
                 end
             end
