@@ -52,7 +52,7 @@ function model = Train(cfg, layout, dat)
             [~,inBanks] = inedges(model.g, bank);
             model = FactorEdgesToExtractComponents(model, dat, clusterer, k, max_edges_per_cmp, inBanks{1}, bank, mode);
         else
-            error(['unexpected task ',task]);
+            error("unexpected task " + task);
         end
     end
 end

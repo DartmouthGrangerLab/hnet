@@ -41,6 +41,13 @@ function [compcode,premergeidx] = Helper(model, compcode, premergeidx, currSrc)
 end
 
 
+% INPUTS
+%   compbank
+%   data
+%   encodeSpec
+% RETURNS
+%   compcode - n_cmp x n_pts (numeric)
+%   premergeIdx
 function [compcode,premergeIdx] = BankEncode(compbank, data, encodespec)
     arguments
         compbank(1,1) ComponentBank, data(:,:), encodespec(1,:) char
