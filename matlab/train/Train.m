@@ -16,7 +16,7 @@ function model = Train(cfg, layout, dat)
     
     SetRNG(cfg);
     
-    model = Model(layout, dat.n_nodes, dat.n_classes, dat.node_name, dat.img_sz);
+    model = Model(layout, dat.n_nodes, dat.n_classes, dat.pixel_metadata, dat.img_sz);
     
     steps = strsplit(cfg.trn_spec, '-->');
     for ii = 1 : numel(steps)
@@ -26,19 +26,19 @@ function model = Train(cfg, layout, dat)
 
         if task == "memorize"
             model = model.InsertComponents(bank, dat.n_pts);
-            model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
+            model.compbanks.(bank).edge_states = GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter); % convert from pixels to edges
             model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
         elseif task == "memorizeclevr"
             model = model.InsertComponents(bank, dat.n_pts);
-            model = model.SetEdgeStates(bank, GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter)); % convert from pixels to edges
+            model.compbanks.(bank).edge_states = GetEdgeStates(dat.pixels, model.compbanks.(bank).edge_endnode_idx, model.compbanks.(bank).edge_type_filter); % convert from pixels to edges
             model.compbanks.(bank).cmp_metadata.src_img_idx = 1:dat.n_pts;
-            model.compbanks.(bank).cmp_metadata.src_chan = dat.labeldata.foveated_chan; % implicit expansion
+            model.compbanks.(bank).cmp_metadata.src_chan = dat.other_metadata.foveated_chan; % implicit expansion
         elseif task == "extractconnec"
             max_length = str2double(step{3}); % max length of a connected component (e.g. Inf, 20)
             [newRelations,metadata] = ExtractConnectedPartComponents(model.compbanks.(bank), dat.img_sz, max_length, 1.5);
             model = model.ClearComponents(bank);
             model = model.InsertComponents(bank, size(newRelations, 2));
-            model = model.SetEdgeStates(bank, newRelations);
+            model.compbanks.(bank).edge_states(:) = newRelations;
             model.compbanks.(bank).cmp_metadata = metadata;
         elseif task == "transl" % translate
             max_translation_delta = str2double(step{3}); % subscript is an integer representing number of pixels to translate

@@ -6,12 +6,14 @@
 % INPUTS
 %   data - n_edges*EDG.n x n (numeric) edges, as returned by GetRelations
 %   do_include_na - OPTIONAL scalar (logical) (default = true)
+%   do_include_all_16 - OPTIONAL scalar (logical) (default = true)
 % RETURNS
 %   y - n_edges x n (EDG enum)
-function y = Weights2Edge(x, do_include_na)
+function y = Weights2Edge(x, do_include_na, do_include_all_16)
     if ~exist("do_include_na", "var") || isempty(do_include_na)
         do_include_na = true;
     end
+
     n = size(x, 2);
     
     if do_include_na

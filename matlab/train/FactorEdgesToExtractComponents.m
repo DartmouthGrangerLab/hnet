@@ -6,17 +6,17 @@
 % INPUTS
 %   model
 %   dat
-%   alg               - (char) 'ica' | ... more pending ... | 'spectralkmeans' | 'kmeans' | 'gmm' | 'hierarchical*'
+%   alg               - scalar (string) "ica" | ... more pending ... | "spectralkmeans" | "kmeans" | "gmm" | "hierarchical*"
 %   k                 - scalar (int-valued numeric)
 %   max_edges_per_cmp - scalar (int-valued numeric)
 %   bank2Cluster      - (char)
 %   bank2FormCmp      - (char)
-%   mode              - (char) 'unsup' | 'sup1' | 'sup2' | 'unsupsplit' | 'sup1split' | 'sup2split'
+%   mode              - scalar (string) "unsup" | "sup1" | "sup2" | "unsupsplit" | "sup1split" | "sup2split"
 % RETURNS
 %   model
 function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_per_cmp, bank2Cluster, bank2FormCmp, mode)
     arguments
-        model(1,1) Model, dat(1,1) Dataset, alg(1,:) char, k(1,1), max_edges_per_cmp(1,1), bank2Cluster(1,:) char, bank2FormCmp(1,:) char, mode(1,:) char
+        model(1,1) Model, dat(1,1) Dataset, alg(1,1) string, k(1,1), max_edges_per_cmp(1,1), bank2Cluster(1,:) char, bank2FormCmp(1,:) char, mode(1,1) string
     end
     k_per_class = round(k / dat.n_classes);
     n_edges = model.compbanks.(bank2FormCmp).g.n_edges;
@@ -30,7 +30,7 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
     if startsWith(mode, "sup1") || startsWith(mode, "sup2")
         assert(dat.n_classes == 2);
         nodeActivations(end+1,:) = logical(dat.label_idx-1);
-        didx = NeighborPairs(model.compbanks.(bank2FormCmp).graph_type, model.compbanks.(bank2FormCmp).n_nodes+1);
+        didx = NeighborPairs(model.compbanks.(bank2FormCmp).graph_type, model.compbanks.(bank2FormCmp).g.n_nodes+1);
     else
         didx = model.compbanks.(bank2FormCmp).edge_endnode_idx;
     end
@@ -84,14 +84,14 @@ function model = FactorEdgesToExtractComponents(model, dat, alg, k, max_edges_pe
 
     model = model.ClearComponents(bank2FormCmp);
     model = model.InsertComponents(bank2FormCmp, size(edgeStates, 2));
-    model = model.SetEdgeStates(bank2FormCmp, edgeStates);
+    model.compbanks.(bank2FormCmp).edge_states(:) = edgeStates;
 
     Toc(t, toc(t) > 1);
 end
 
 
 % INPUTS
-%   alg            - (char)
+%   alg            - scalar (string)
 %   edges          - n_edges x n_pts (EDG enum)
 %   k              - scalar (int-valued numeric)
 %   edgeTypeFilter - vector (EDG enum)

@@ -7,12 +7,12 @@
 % INPUTS
 %   path   - (char) output directory
 %   model  - (Model)
-%   code   - (struct)
 %   dat    - (Dataset)
-%   append - (char)
-function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, append)
+%   code   - (struct)
+%   append - scalar (string)
+function [] = RenderDiscrimVsSharednessVsFrequency(path, model, dat, code, append)
     arguments
-        path(1,:) char, model(1,1) Model, code(1,1) struct, dat(1,1) Dataset, append(1,:) char
+        path(1,:) char, model(1,1) Model, dat(1,1) Dataset, code(1,1) struct, append(1,1) string
     end
     do_pretty = false;
     
@@ -26,7 +26,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
     hist = code.hist.(model.output_bank_name);
     tier1Bank = 'connectedpart'; % TODO: ask model what the bank's name is
 
-    [discriminability,sharedness] = stat.SparseClassResponderDiscriminability(hist);
+    [discriminability,sharedness] = SparseClassResponderDiscriminability(hist);
     nanMsk = isnan(discriminability);
     
     frequency = sum(code.comp_code.(model.output_bank_name), 2);
@@ -56,7 +56,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
     box on
     grid on
     view(135, 45);
-    fig.print(h, Config.OUT_DIR, char(['discrimvsshared_',append]), [10,10]);
+    fig.print(h, Config.OUT_DIR, char("discrimvsshared_" + append), [10,10]);
 
     if ~isempty(dat.img_sz)
         [row,col] = PixelRowCol(dat.img_sz);
@@ -83,7 +83,7 @@ function [] = RenderDiscrimVsSharednessVsFrequency(path, model, code, dat, appen
             xlabel(num2str(feat2RenderIdx(i))); ylabel("histogram count");
         end
 
-        fig.print(h, path, char(['discrimvsshared_examples_',append]), 'auto', dpi);
+        fig.print(h, path, char("discrimvsshared_examples_" + append), 'auto', dpi);
     end
     
     Toc(t);

@@ -34,12 +34,12 @@ function [newRelations,metadata] = ExtractConnectedPartComponents(compbank, imgs
     srcCmpIdx = zeros(size(edge_relations, 2), 1); % we're likely to have at least as many connected components as edge components
 
     % precomputed values
-    didx = NeighborPairs(compbank.graph_type, imgsz(1) * imgsz(2), imgsz); % n_edges x 2
+    didx = NeighborPairs(compbank.graph_type, imgsz(1) * imgsz(2) * imgsz(3), imgsz); % n_edges x 2
     active_edge_mask = edge_relations ~= EDG.NULL; % active_edge_mask(:,i) == edges that are activated by image i
-    nodeNames = strsplit(num2str(1:imgsz(1)*imgsz(2))); % cell array of chars
+    nodeNames = strsplit(num2str(1:imgsz(1)*imgsz(2)*imgsz(3))); % cell array of chars
     
     % reused values
-    activations = false(imgsz(1) * imgsz(2), 1);
+    activations = false(imgsz(1) * imgsz(2) * imgsz(3), 1);
     node_edges_map = cell(compbank.g.n_nodes, 1); % a node-->edges map
     
     count = 1;
@@ -57,10 +57,10 @@ function [newRelations,metadata] = ExtractConnectedPartComponents(compbank, imgs
         % find pairs of active nodes that are next to each other (including on the diagonal)
         activations(:) = false;
         activations(activeNodeIdx) = true; % activeNodeIdx may contain duplicates, this will remove those
-        [coordsR,coordsC] = find(reshape(activations, imgsz(1), imgsz(2))); % n_active_edges x 1 (both)
+        [coordsR,coordsC,chan] = find(reshape(activations, imgsz(1), imgsz(2), imgsz(3))); % n_active_edges x 1 (both)
         pcoords = cat(2, coordsC(:), -coordsR(:)); % n_active_edges x 2
         dist = squareform(pdist(pcoords)); % n_active_edges x n_active_edges (aka n_pixels_that_are_white)
-        mask = dist < connection_thresh;
+        mask = (dist < connection_thresh) & (chan(:) == chan(:)'); % disallow inter-channel connections
         [iidxR,iidxC] = find(triu(mask, 1)); % n_graph_edges x 1 (both)
         g = graph(iidxR, iidxC, [], nodeNames(activations));
         
@@ -91,11 +91,14 @@ end
 
 function [newRelations,srcCmpIdx,count] = Helper(newRelations, srcCmpIdx, count, node_edges_map, edge_relations, max_connected_part_length, i, c, g)
     edgeidx = unique(CellCat2Vec(node_edges_map(str2double(c))));
+    g = minspantree(subgraph(g, c)); % find a min spanning tree of c (to remove cycles; important for below code)
+    
+    % n_edges = g.numedges;
     n_edges = numel(edgeidx);
+    
     if n_edges < 4
         return
     elseif n_edges > max_connected_part_length
-        g = minspantree(subgraph(g, c)); % find a min spanning tree of c (to remove cycles; important for below code)
         [node1,node2] = connected_components_find_central_edge(g); % find the most central node by iteratively deleting leaf nodes until only one node is left
         g = rmedge(g, node1, node2); % remove the last (~central) edge
         connected_components = conncomp(g, 'OutputForm', 'cell'); % re-get connected parts (now 2 of them)
@@ -112,6 +115,7 @@ end
 
 
 function [node1,node2] = connected_components_find_central_edge(g)
+    assert(g.numedges > 0);
     nodeNames = table2cell(g.Nodes);
     % find the most central node by iteratively deleting leaf nodes until only one node is left
     while g.numedges > 1

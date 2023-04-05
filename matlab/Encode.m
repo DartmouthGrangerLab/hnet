@@ -4,13 +4,6 @@
 %   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
-%   compbank
-%   data
-%   encodeSpec
-% RETURNS
-%   compcode - n_cmp x n_pts (numeric)
-%   premergeIdx
-% INPUTS
 %   model - scalar (Model)
 %   sense - n_nodes x n_pts (logical) e.g. dat.pixels
 % RETURNS
@@ -50,7 +43,7 @@ end
 %   premergeIdx
 function [compcode,premergeIdx] = BankEncode(compbank, data, encodespec)
     arguments
-        compbank(1,1) ComponentBank, data(:,:), encodespec(1,:) char
+        compbank(1,1) ComponentBank, data(:,:), encodespec(1,1) string
     end
     validateattributes(data, {'logical','double','single'}, {});
     if compbank.n_cmp == 0
@@ -67,7 +60,7 @@ function [compcode,premergeIdx] = BankEncode(compbank, data, encodespec)
     for ii = 1 : numel(steps)
         step = strsplit(steps{ii}, ".");
         task = step{1};
-
+        
         if task == "energy"
             compcode = Energy(compbank, compcode);
             premergeIdx = repmat((1:compbank.n_cmp)', 1, size(compcode, 2)); % n_groups x n_pts

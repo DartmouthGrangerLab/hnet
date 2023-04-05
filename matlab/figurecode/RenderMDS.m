@@ -11,14 +11,14 @@
 %   inPredLabelIdx
 %   edgePredLabelIdx
 %   codePredLabelIdx
-%   distMeasure - (char) input to pdist
-%   mode        - (char) 'scatter' | 'numbers' | '+/-'
-%   append      - (char) text to append to output file names
+%   distMeasure - scalar (string) input to pdist
+%   mode        - scalar (string) "scatter" | "numbers" | "+/-"
+%   append      - scalar (string) text to append to output file names
 function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx, codePredLabelIdx, distMeasure, mode, append)
     arguments
-        path(1,:) char, dat(1,1) Dataset, model(1,1) Model, code(1,1) struct, inPredLabelIdx, edgePredLabelIdx, codePredLabelIdx, distMeasure(1,:) char, mode(1,:) char, append(1,:) char
+        path(1,:) char, dat(1,1) Dataset, model(1,1) Model, code(1,1) struct, inPredLabelIdx, edgePredLabelIdx, codePredLabelIdx, distMeasure(1,1) string, mode(1,1) string, append(1,1) string
     end
-    senseDidx = NeighborPairs(model.compbanks.(model.tier1_compbank_names{1}).graph_type, dat.n_nodes, model.compbanks.(model.tier1_compbank_names{1}).imgsz);
+    senseDidx = NeighborPairs(model.compbanks.(model.tier1_compbank_names{1}).graph_type, dat.n_nodes, dat.img_sz);
     
     t = tic();
     
@@ -66,7 +66,7 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
         xlabel(['pc 1 (',num2str(explained(1), '%.2f'),'% expl.)']);
         ylabel(['pc 2 (',num2str(explained(2), '%.2f'),'% expl.)']);
         zlabel(['pc 3 (',num2str(explained(3), '%.2f'),'% expl.)']);
-        title(['pca(logicnet ',bank,' encoding)'], FontSize=10); % default = 11
+        title("pca(logicnet " + bank + " encoding)", FontSize=10); % default = 11
 
         fig.subplot(n_rows, n_cols, 4 + 2*(i-1) + 2, margin);
         try
@@ -74,10 +74,10 @@ function [] = RenderMDS(path, dat, model, code, inPredLabelIdx, edgePredLabelIdx
             mds = cmdscale(pDist, 3);
             Helper(mds, dat.label_idx, codePredLabelIdx, dat.n_classes, mode);
         end
-        title(['cmds(logicnet ',bank,' encoding)'], FontSize=10); % default = 11
+        title("cmds(logicnet " + bank + " encoding)", FontSize=10); % default = 11
     end
 
-    fig.print(h, path, char(['mds_',append]), 'auto', 300);
+    fig.print(h, path, char("mds_" + append), 'auto', 300);
     
     Toc(t);
 end

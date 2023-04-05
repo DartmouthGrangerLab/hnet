@@ -125,18 +125,17 @@ function model = TranslateAndRotate(model, bank, imgSz, max_translation_delta, m
     % update component bank
     model = model.ClearComponents(bank);
     model = model.InsertComponents(bank, size(edgeStates, 2));
-    model = model.SetEdgeStates(bank, edgeStates);
+    model.compbanks.(bank).edge_states(:) = edgeStates;
     model.compbanks.(bank).cmp_metadata = metadata;
     
     % update groups
     if isfield(model.compbanks, 'group')
         assert(model.compbanks.group.n_cmp == 0);
         model = model.InsertComponents('group', numel(unique(groupIdx)));
-        edgeStates = EDG(EDG.NULL .* ones(size(model.compbanks.group.edge_states), 'uint8'));
+        model.compbanks.group.edge_states(:) = EDG.NULL;
         for i = 1 : model.compbanks.group.n_cmp
-            edgeStates(groupIdx==i,i) = EDG.AND;
+            model.compbanks.group.edge_states(groupIdx==i,i) = EDG.AND;
         end
-        model = model.SetEdgeStates('group', edgeStates);
 
         [~,grpIn] = inedges(model.g, 'group');
         model.compbanks.group.cmp_metadata = model.compbanks.(grpIn{1}).cmp_metadata;

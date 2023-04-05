@@ -37,7 +37,7 @@ function [] = RenderDatapointNoEdges(path, dat, pt2Render, append)
     end
 
     h = figure(Visible="off");
-    PlotGraph(EDG([]), [], row, col, [], imgSz, pixelValues, false, false, dat.node_name, do_pretty, num2str(pt2Render));
+    PlotGraph(EDG([]), [], row, col, [], imgSz, pixelValues, false, false, dat.pixel_metadata.name, do_pretty, num2str(pt2Render));
     fig.print(h, path, char(append), [4,4], dpi);
 
     Toc(t, toc(t) > 1);

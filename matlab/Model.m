@@ -23,7 +23,7 @@ classdef Model
 
 
     methods
-        function obj = Model(layout, n_sense, n_label, nodeName, imgSz) % constructor
+        function obj = Model(layout, n_sense, n_label, pixel_metadata, imgSz) % constructor
             if ~exist("imgSz", "var")
                 imgSz = [];
             end
@@ -41,15 +41,18 @@ classdef Model
                 assert(indegree(obj.g, srcdst{2}) == 1); % currently, we only support one input per component bank (for simplicity, so that n_cmp of the input = n_nodes of the output)
             end
             
+            empty_struct = struct();
+            empty_struct.name = {};
+            empty_struct.chanidx = [];
             fn = fieldnames(layout);
             for i = 1 : numel(fn)
                 if fn{i} ~= "connec"
                     [~,upstreamBanks] = inedges(obj.g, fn{i});
                     obj.g.Nodes.encode_spec{strcmp(obj.g.Nodes.Name, fn{i})} = layout.(fn{i}).encode_spec;
                     if any(strcmp(upstreamBanks, "sense"))
-                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, n_sense, nodeName, imgSz);
+                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, n_sense, pixel_metadata, imgSz);
                     else
-                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, 0, [], imgSz);
+                        obj.compbanks.(fn{i}) = ComponentBank(layout.(fn{i}).graph_type, layout.(fn{i}).edge_type_filter, 0, empty_struct, imgSz);
                     end
                 end
             end
@@ -85,7 +88,7 @@ classdef Model
             end
             for i = 1 : obj.compbanks.(bank).n_cmp
                 edgeMsk = (obj.compbanks.(bank).edge_states(:,i) ~= EDG.NULL);
-                pixelIdx = obj.didx(edgeMsk,:); % get the pixel indices associated with component i
+                pixelIdx = obj.compbanks.(bank).edge_endnode_idx(edgeMsk,:); % get the pixel indices associated with component i
                 row(i) = mean(pxRow(pixelIdx(:)));
                 col(i) = mean(pxCol(pixelIdx(:)));
             end
@@ -136,11 +139,6 @@ classdef Model
                 keep = any(obj.compbanks.(fn{i}).edge_states, 1);
                 obj = SubsetComponents(obj, fn{i}, keep);
             end
-        end
-
-
-        function obj = SetEdgeStates(obj, bank, edgeStates)
-            obj.compbanks.(bank) = obj.compbanks.(bank).SetEdgeStates(edgeStates);
         end
 
 

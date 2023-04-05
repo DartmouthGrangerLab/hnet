@@ -6,10 +6,10 @@
 % all components within a bank share one graph
 classdef ComponentBank
     properties % access is controlled via set functions
-        cmp_metadata (1,1) struct % metadata for each component (all fields are 1 x n_cmp)
+        edge_states  (:,:) EDG    % n_edges x n_cmp
+        cmp_metadata (1,1) struct % metadata for each component (all fields are n_cmp x 1)
     end
     properties (SetAccess=private)
-        edge_states      (:,:) EDG    % n_edges x n_cmp
         graph_type       (1,1) GRF
         g                (1,1) DiGraph % keeps track of the edges within this bank
         edge_type_filter (:,1) EDG
@@ -24,9 +24,9 @@ classdef ComponentBank
 
 
     methods
-        function obj = ComponentBank(graphType, edgeTypeFilter, n_nodes, nodeName, imgsz) % constructor
+        function obj = ComponentBank(graphType, edgeTypeFilter, n_nodes, node_metadata, imgsz) % constructor
             arguments
-                graphType(1,1) GRF, edgeTypeFilter(:,1) EDG, n_nodes(1,1), nodeName, imgsz
+                graphType(1,1) GRF, edgeTypeFilter(:,1) EDG, n_nodes(1,1), node_metadata(1,1) struct, imgsz
             end
             if ~exist("imgsz", "var")
                 imgsz = [];
@@ -35,11 +35,19 @@ classdef ComponentBank
             obj.graph_type = graphType;
             obj.edge_type_filter = edgeTypeFilter;
 
-            didx = NeighborPairs(obj.graph_type, n_nodes, obj.imgsz);
+            [didx,isright,isdown,chanidx] = NeighborPairs(obj.graph_type, n_nodes, obj.imgsz);
             
             obj.g = DiGraph();
-            obj.g.node_metadata.name = {};
-            obj.g.node_metadata.chan = [];
+            assert(isfield(node_metadata, "name"));
+            assert(isfield(node_metadata, "chanidx"));
+            fn = fieldnames(node_metadata);
+            for i = 1 : numel(fn)
+                if iscell(node_metadata.(fn{i}))
+                    obj.g.node_metadata.(fn{i}) = {};
+                else
+                    obj.g.node_metadata.(fn{i}) = [];
+                end
+            end
             obj.g.edge_metadata.is_right = logical([]);
             obj.g.edge_metadata.is_down = logical([]);
 
@@ -48,13 +56,17 @@ classdef ComponentBank
                 obj.g = obj.g.AddEdges(didx(:,1), didx(:,2));
             end
 
-             % populate graph metadata fields
-            if exist('nodeName', 'var') && ~isempty(nodeName)
-                obj.g.node_metadata.name(:) = nodeName;
+            % populate graph metadata fields
+            for i = 1 : numel(fn)
+                obj.g.node_metadata.(fn{i})(:) = node_metadata.(fn{i});
             end
+            if obj.graph_type == GRF.GRID2DMULTICHAN
+                obj.g.node_metadata.chanidx(:) = chanidx;
+            end
+            obj.g.edge_metadata.is_right(:) = isright;
+            obj.g.edge_metadata.is_down(:) = isdown;
             
             obj.edge_states = EDG(uint8.empty(obj.g.n_edges, 0));
-            obj.Validate();
         end
 
 
@@ -64,7 +76,6 @@ classdef ComponentBank
             else
                 obj.edge_states(:,end+(1:n_new)) = EDG.NULL;
             end
-            obj.Validate();
         end
 
 
@@ -78,7 +89,6 @@ classdef ComponentBank
             end
             obj.edge_states = obj.edge_states(:,keep);
             obj.cmp_metadata = m;
-            obj.Validate();
         end
 
 
@@ -89,13 +99,16 @@ classdef ComponentBank
             n_new_nodes = numel(nodeIDs);
             n_orig_nodes = obj.g.n_nodes; % BEFORE any changes to obj
             
-            didx = NeighborPairs(obj.graph_type, n_orig_nodes + n_new_nodes, obj.imgsz);
+            [didx,isEdgeRight,isEdgeDown,nodeChan] = NeighborPairs(obj.graph_type, n_orig_nodes + n_new_nodes, obj.imgsz);
             
             % insert new nodes
             origNodes = obj.g.nodes;
             obj.g = obj.g.AddNodes(nodeIDs);
             if exist("nodeName", "var") && ~isempty(nodeName)
                 obj.g.node_metadata.name(end-n_new_nodes+1:end) = nodeName;
+            end
+            if obj.graph_type == GRF.GRID2DMULTICHAN
+                obj.g.node_metadata.chanidx(:) = nodeChan;
             end
             
             % find any new edges
@@ -104,6 +117,8 @@ classdef ComponentBank
                 assert(obj.graph_type ~= GRF.GRID2D && obj.graph_type ~= GRF.GRID2DMULTICHAN);
                 drop = (ismember(edges(:,1), origNodes) & ismember(edges(:,2), origNodes)); % n_edges x 1 (logical)
                 edges(drop,:) = [];
+                isEdgeRight(drop,:) = [];
+                isEdgeDown(drop,:) = [];
             end
             obj.g = obj.g.AddEdges(edges(:,1), edges(:,2));
             n_new_edges = size(edges, 1);
@@ -112,7 +127,8 @@ classdef ComponentBank
             else
                 obj.edge_states(end+(1:n_new_edges),:) = EDG.NULL;
             end
-            obj.Validate();
+            obj.g.edge_metadata.is_right(end-n_new_edges+1:end) = isEdgeRight;
+            obj.g.edge_metadata.is_down(end-n_new_edges+1:end) = isEdgeDown;
         end
 
 
@@ -127,9 +143,7 @@ classdef ComponentBank
             else
                 mask = ~ismember(obj.g.edge_endnode_src, nodeName2Remove) & ~ismember(obj.g.edge_endnode_dst, nodeName2Remove); % n_edges x 1 (logical)
             end
-            obj.g.RemoveEdges(~mask);
             obj.edge_states = obj.edge_states(mask,:);
-            obj.Validate();
         end
 
 
@@ -139,11 +153,12 @@ classdef ComponentBank
 
 
         % sets
-        function obj = SetEdgeStates(obj, edgeStates)
-            assert(size(edgeStates, 1) == size(obj.edge_states, 1), "use special setter functions if changing number of edges in component bank");
-            assert(size(edgeStates, 2) == size(obj.edge_states, 2), "use special setter functions if changing number of components in bank");
+        function obj = set.edge_states(obj, edgeStates)
+            if (CallingFile() ~= "ComponentBank") && ~isempty(obj.edge_states) % ~isempty = important for loading class from file
+                assert(size(edgeStates, 1) == size(obj.edge_states, 1), "use special setter functions if changing number of edges in component bank");
+                assert(size(edgeStates, 2) == size(obj.edge_states, 2), "use special setter functions if changing number of components in bank");
+            end
             obj.edge_states = edgeStates;
-            obj.Validate();
         end
 
 
@@ -161,12 +176,9 @@ classdef ComponentBank
             x = cat(2, obj.g.edge_endnode_src, obj.g.edge_endnode_dst);
         end
         function x = get.edge_endnode_idx(obj)
-            x = cat(2, obj.g.edge_endnode_src_idx, obj.g.edge_endnode_dst_idx);
-        end
-
-
-        function Validate(obj)
-            assert(size(obj.edge_states, 1) == obj.g.n_edges);
+            idx = (1:obj.g.n_nodes)';
+            idx = idx(obj.g.nodes);
+            x = cat(2, idx(obj.g.edge_endnode_src), idx(obj.g.edge_endnode_dst));
         end
     end
 end

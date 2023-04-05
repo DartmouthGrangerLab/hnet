@@ -8,13 +8,15 @@
 %   frontendSpec - (char) dataset and frontend name and parameters (see dataset.m)
 %   trnSpec      - (char) training specification string
 % USAGE
-%   Main('metacred',  'ucicreditgerman', 'tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsupsplit');
-%   Main('groupedimg', 'mnistpy.128', 'connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2');
+%   Main("metacred",  "ucicreditgerman", "tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsupsplit");
+%   Main("groupedimg", "mnistpy.128", "connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2");
+%   Main("clevrpos1", "clevrpossimple", "tier1.memorize");
 function [] = Main(modelName, frontendSpec, trnSpec)
+    assert(endsWith(Config.MyDir(), "/matlab") || endsWith(Config.MyDir(), "\matlab"), "Main() expects to be run from the hnet/matlab/ directory");
     addpath(genpath(Config.MyDir())); % add sub-folders in case they weren't added
     
-    cfg = struct(model_name=modelName, frontend_spec=frontendSpec, trn_spec=trnSpec);
-    outDir = fullfile(Config.OUT_DIR, [cfg.model_name,'_',cfg.frontend_spec,'_',strrep(cfg.trn_spec, '-->', '-')]);
+    cfg = struct(model_name=char(modelName), frontend_spec=char(frontendSpec), trn_spec=char(trnSpec));
+    outDir = fullfile(Config.OUT_DIR, cfg.model_name + "_" + cfg.frontend_spec + "_" + strrep(cfg.trn_spec, "-->", "-"));
     if ~isfolder(outDir)
         mkdir(outDir);
     end
@@ -24,35 +26,35 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     
     %% load dataset
     SetRNG(1000);
-    trndat = Dataset(cfg.frontend_spec, 'trn');
-    tstdat = Dataset(cfg.frontend_spec, 'tst');
+    trndat = Dataset(cfg.frontend_spec, "trn");
+    tstdat = Dataset(cfg.frontend_spec, "tst");
     
     % print dataset info to text files
-    temp = cat(2, trndat.node_name, num2cell(sum(trndat.pixels, 2)));
-    writecell(cat(1, {'node_name','num nonzero pixels'}, temp), fullfile(Config.OUT_DIR, ['node_name_',cfg.frontend_spec,'.csv']));
-    if isfield(trndat.meta, "category_info")
-        temp = cat(2, fieldnames(trndat.meta.category_info), struct2cell(trndat.meta.category_info));
-        writecell(cat(1, {'field','value'}, temp), fullfile(Config.OUT_DIR, ['category_info_',cfg.frontend_spec,'.csv']));
+    temp = cat(2, trndat.pixel_metadata.name, num2cell(sum(trndat.pixels, 2)));
+    writecell(cat(1, {'node_name','num nonzero pixels'}, temp), fullfile(Config.OUT_DIR, "node_name_" + cfg.frontend_spec + ".csv"));
+    if isfield(trndat.other_metadata, "category_info")
+        temp = cat(2, fieldnames(trndat.other_metadata.category_info), struct2cell(trndat.other_metadata.category_info));
+        writecell(cat(1, {'field','value'}, temp), fullfile(Config.OUT_DIR, "category_info_" + cfg.frontend_spec + ".csv"));
     end
-    if isfield(trndat.meta, "t")
-        writetable(trndat.meta.t, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_trn.csv']));
-        writetable(tstdat.meta.t, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_tst.csv']));
+    if isfield(trndat.other_metadata, "t")
+        writetable(trndat.other_metadata.t, fullfile(Config.OUT_DIR, cfg.frontend_spec + "_trn.csv"));
+        writetable(tstdat.other_metadata.t, fullfile(Config.OUT_DIR, cfg.frontend_spec + "_tst.csv"));
     end
-    if isfield(trndat.meta, "t_bin")
-        writetable(trndat.meta.t_bin, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_bin_trn.csv']));
-        writetable(tstdat.meta.t_bin, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_bin_tst.csv']));
+    if isfield(trndat.other_metadata, "t_bin")
+        writetable(trndat.other_metadata.t_bin, fullfile(Config.OUT_DIR, cfg.frontend_spec + "_bin_trn.csv"));
+        writetable(tstdat.other_metadata.t_bin, fullfile(Config.OUT_DIR, cfg.frontend_spec + "_bin_tst.csv"));
     end
-    t = table(trndat.node_name(:));
+    t = table(trndat.pixel_metadata.name(:));
     for i = 1 : trndat.n_classes
-        t = addvars(t, round(sum(trndat.pixels(:,trndat.label_idx == i), 2) ./ trndat.n_pts, 4), 'NewVariableNames', ['frac_occurs_in_pts_of_class_',trndat.uniq_classes{i}]);
+        t = addvars(t, round(sum(trndat.pixels(:,trndat.label_idx == i), 2) ./ trndat.n_pts, 4), NewVariableNames=['frac_occurs_in_pts_of_class_',trndat.uniq_classes{i}]);
     end
-    writetable(t, fullfile(Config.OUT_DIR, [cfg.frontend_spec,'_var_cls_cooccur_frequency.csv']));
+    writetable(t, fullfile(Config.OUT_DIR, cfg.frontend_spec + "_var_cls_cooccur_frequency.csv"));
     
     % render example datapoints
     for c = 1 : trndat.n_classes
         idx = find(trndat.label_idx == c);
         for i = 1 : min(numel(idx), 5) % for each image in this class
-            RenderDatapointNoEdges(fullfile(Config.OUT_DIR, 'samplestim'), trndat, idx(i), [trndat.uniq_classes{c},'_',num2str(i)])
+            RenderDatapointNoEdges(fullfile(Config.OUT_DIR, "samplestim"), trndat, idx(i), trndat.uniq_classes{c}+"_"+num2str(i))
         end
     end
     
@@ -72,24 +74,31 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     [trnCode.comp_code,trnCode.premerge_idx] = Encode(model, trndat.pixels);
     [tstCode.comp_code,tstCode.premerge_idx] = Encode(model, tstdat.pixels);
 
+    if modelName == "clevrpos1" || modelName == "clevrpos2"
+        for i = 1 : 100
+            RenderCLEVRPosImg(outDir, trndat, model, i);
+        end
+        return
+    elseif modelName == "clevr"
+        return
+    end
+
     trnCode.hist = struct();
     tstCode.hist = struct();
     trnCode.comp_best_img = struct();
     tstCode.comp_best_img = struct();
-
     for i = 1 : model.n_compbanks
         name = model.compbank_names{i};
 
-        trnCode.hist.(name) = ClassHistogram(trndat, trnCode.comp_code.(name));
-        tstCode.hist.(name) = ClassHistogram(tstdat, tstCode.comp_code.(name));
+        trnCode.hist.(name) = ClassHistogram(encode.OneHot(trndat.label_idx, trndat.n_classes), trnCode.comp_code.(name));
+        tstCode.hist.(name) = ClassHistogram(encode.OneHot(tstdat.label_idx, tstdat.n_classes), tstCode.comp_code.(name));
 
         [~,trnCode.comp_best_img.(name)] = max(trnCode.comp_code.(name), [], 2);
         [~,tstCode.comp_best_img.(name)] = max(tstCode.comp_code.(name), [], 2);
     end
 
     %% print accuracy and related stats
-    PrintPerformance(model, trndat, tstdat, trnCode.comp_code.(model.output_bank_name), tstCode.comp_code.(model.output_bank_name), [cfg.model_name,'_',cfg.trn_spec], cfg.frontend_spec);
-    return; %TEMP
+    PrintPerformance(model, trndat.pixels, trndat.label_idx, tstdat.pixels, tstdat.label_idx, trnCode.comp_code.(model.output_bank_name), tstCode.comp_code.(model.output_bank_name), cfg.model_name + "_" + cfg.trn_spec, cfg.frontend_spec);
 
     %% render the edges involved in each component
     for i = 1 : model.n_compbanks
@@ -101,16 +110,16 @@ function [] = Main(modelName, frontendSpec, trnSpec)
 
         % get metadata and pass to PrintEdgeRelations
         node_info = model.compbanks.(bank).g.node_metadata.name;
-        if strcmp(bank, model.tier1_compbank_names{1}) && isfield(tstdat.meta, "category_info")
+        if strcmp(bank, model.tier1_compbank_names{1}) && isfield(tstdat.other_metadata, "category_info")
             for j = 1 : tstdat.n_nodes
-                if isfield(tstdat.meta.category_info, node_info{j})
-                    node_info{j} = tstdat.meta.category_info.(node_info{j});
+                if isfield(tstdat.other_metadata.category_info, node_info{j})
+                    node_info{j} = tstdat.other_metadata.category_info.(node_info{j});
                 end
             end
         end
 
         for j = 1 : min(100, model.compbanks.(bank).n_cmp) % for each component in this bank
-            PrintEdgeRelations(outDir, [bank,'_cmp',int2str(j),'.txt'], model.compbanks.(bank).edge_states(:,j), model.compbanks.(bank).edge_endnode_idx, node_info, bank, model.tier1_compbank_names{1});
+            PrintEdgeRelations(outDir, bank+"_cmp"+int2str(j)+".txt", model.compbanks.(bank).edge_states(:,j), model.compbanks.(bank).edge_endnode_idx, node_info, bank, model.tier1_compbank_names{1});
         end
     end
 
@@ -134,14 +143,14 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     
     %% render class histograms
     for i = 1 : model.n_compbanks
-        RenderHist(outDir, trndat.uniq_classes, trnCode, model.compbank_names{i}, 'trn');
-        RenderHist(outDir, trndat.uniq_classes, tstCode, model.compbank_names{i}, 'tst');
+        RenderHist(outDir, trndat.uniq_classes, trnCode, model.compbank_names{i}, "trn");
+        RenderHist(outDir, trndat.uniq_classes, tstCode, model.compbank_names{i}, "tst");
     end
 
     %% render discriminability vs sharedness of each component's response to the dataset
     if ~isfield(model.compbanks, "meta") && ~isfield(model.compbanks, "group") && trndat.n_classes > 2 % if we only have one tier
-        RenderDiscrimVsSharednessVsFrequency(outDir, model, trnCode, trndat, 'trn');
-        RenderDiscrimVsSharednessVsFrequency(outDir, model, tstCode, tstdat, 'tst');
+        RenderDiscrimVsSharednessVsFrequency(outDir, model, trndat, trnCode, "trn");
+        RenderDiscrimVsSharednessVsFrequency(outDir, model, tstdat, tstCode, "tst");
     end
     
     %% render the groups
@@ -151,8 +160,21 @@ function [] = Main(modelName, frontendSpec, trnSpec)
         end
     end
     
+    %% render PCA and multidimensional scaling plots
+    RenderMDS(outDir, tstdat, model, tstCode, [], [], [], "correlation", "scatter", "scatter_corr");
+    RenderMDS(outDir, tstdat, model, tstCode, [], [], [], "euclidean", "scatter", "scatter_eucl");
+    
+    %% render foveated group images
+    if ~isempty(trndat.img_sz) && any(strcmp(model.compbank_names, "group")) % if the data is images and we have groups
+        try
+            for c = 1 : trndat.n_classes
+                RenderFoveatedGroupImages(outDir, trndat.SubsetDatapoints(trndat.label_idx == c), model, trndat.uniq_classes{c});
+            end
+        end
+    end
+
     %% precompute some stats for below figures
-    if islogical(trnCode.comp_code.(model.output_bank_name)) || isa(trnCode.comp_code.(model.output_bank_name), 'uint8')
+    if islogical(trnCode.comp_code.(model.output_bank_name)) || isa(trnCode.comp_code.(model.output_bank_name), "uint8")
         knnParams = struct(k=1, distance='dot');
         nbParams = struct(distribution='bern');
     else % feat codes are probably energies; ~poisson distributed
@@ -161,63 +183,33 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     end
     trnSenseEdges = Edge2Logical(GetEdgeStates(trndat.pixels, model.compbanks.(model.tier1_compbank_names{1}).edge_endnode_idx, model.compbanks.(model.tier1_compbank_names{1}).edge_type_filter));
     tstSenseEdges = Edge2Logical(GetEdgeStates(tstdat.pixels, model.compbanks.(model.tier1_compbank_names{1}).edge_endnode_idx, model.compbanks.(model.tier1_compbank_names{1}).edge_type_filter));
-    
-    %% render PCA and multidimensional scaling plots
-    RenderMDS(outDir, tstdat, model, tstCode, [], [], [], 'correlation', 'scatter', 'scatter_corr');
-    RenderMDS(outDir, tstdat, model, tstCode, [], [], [], 'euclidean', 'scatter', 'scatter_eucl');
-    
-    %% render foveated group images
-    if ~isempty(trndat.img_sz) && any(strcmp(model.compbank_names, 'group')) % if the data is images and we have groups
-        try
-            for c = 1 : trndat.n_classes
-                RenderFoveatedGroupImages(outDir, trndat.SubsetDatapoints(trndat.label_idx == c), model, trndat.uniq_classes{c});
-            end
-        end
-    end
-   
-    %% render TP / FP examples
-    predName = {};
-    pred = struct();
     try
+        predName = {'onenn','nb','net','svm'};
+        pred = struct();
         [~,pred.onenn] = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trndat.label_idx, tstCode.comp_code.(model.output_bank_name)', tstdat.label_idx, 'knn', knnParams, true);
-        predName = [predName,'onenn'];
-    catch ex
-        warning(ex.message);
-    end
-    try
         [~,pred.nb]    = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trndat.label_idx, tstCode.comp_code.(model.output_bank_name)', tstdat.label_idx, 'nbfast', nbParams, true);
-        predName = [predName,'nb'];
-    catch ex
-        warning(ex.message);
-    end
-    try
         [~,pred.net]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trndat.label_idx, tstCode.comp_code.(model.output_bank_name)', tstdat.label_idx, 'patternnet', [], true);
-        predName = [predName,'net'];
-    catch ex
-        warning(ex.message);
-    end
-    try
         [~,pred.svm]   = ml.Classify(trnCode.comp_code.(model.output_bank_name)', trndat.label_idx, tstCode.comp_code.(model.output_bank_name)', tstdat.label_idx, 'svmliblinear', [], true);
-        predName = [predName,'svm'];
     catch ex
         warning(ex.message);
         disp("terminating figure code early due to above issue");
         return
     end
 
+    %% render TP / FP examples
     for c = 1 : trndat.n_classes
         className = trndat.uniq_classes{c};
         for i = 1 : numel(predName)
             idx = find((tstdat.label_idx(:)' ~= c) & (pred.(predName{i})(:)' == c));
             idx = idx(randperm(numel(idx), min(5, numel(idx)))); % shuffle so we don't wind up with all the zeros and ones (limit to 5 renders per call)
             for j = 1 : numel(idx) % for each datapoint
-                RenderDatapoint(outDir, model, tstdat, tstCode, idx(j), [predName{i},'_tst_fp',className,'-',num2str(j)]);
+                RenderDatapoint(outDir, model, tstdat, tstCode, idx(j), predName{i}+"_tst_fp"+className+"-"+num2str(j));
             end
             
             idx = find((tstdat.label_idx(:)' == c) & (pred.(predName{i})(:)' == c));
             idx = idx(randperm(numel(idx), min(5, numel(idx)))); % shuffle so we don't wind up with all the zeros and ones (limit to 5 renders per call)
             for j = 1 : numel(idx) % for each datapoint
-                RenderDatapoint(outDir, model, tstdat, tstCode, idx(j), [predName{i},'_tst_tp',className,'-',num2str(j)]);
+                RenderDatapoint(outDir, model, tstdat, tstCode, idx(j), predName{i}+"_tst_tp"+className+"-"+num2str(j));
             end
         end
     end

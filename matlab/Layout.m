@@ -4,16 +4,16 @@
 %   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
-%   name - (char) name of layout to load
+%   name - scalar (string) name of layout to load
 % RETURNS
 %   layout - (cell array of structs)
 function layout = Layout(name)
     arguments
-        name(1,:) char
+        name(1,1) string
     end
     
     %% load
-%     layout = jsondecode(fileread(['layout_',name,'.json'])); % json file must be on the matlab path
+%     layout = jsondecode(fileread("layout_" + name + ".json")); % json file must be on the matlab path
 
     layout = struct();
     if name == "basicimg"
@@ -67,7 +67,7 @@ function layout = Layout(name)
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
     elseif name == "metacred" % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy-->wta.20');
-        layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND],      encode_spec='energy');
+        layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL,EDG.AND], encode_spec='energy');
         layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
     elseif name == "metacredand" % meta hierarchy for credit datasets
         layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=EDG.AND, encode_spec='energy-->wta.20');
@@ -76,7 +76,7 @@ function layout = Layout(name)
     elseif name == "metagrpimg" % meta hierarchy for image datasets
         layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
         layout.group         = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
-        layout.meta          = struct(graph_type=GRF.NULL, edge_type_filter=[], encode_spec='energy');
+        layout.meta          = struct(graph_type=GRF.NULL,   edge_type_filter=[], encode_spec='energy');
         layout.metagroup     = struct(graph_type=GRF.SELF,   edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->connectedpart,connectedpart-->group,group-->meta,meta-->metagroup,metagroup-->out';
     elseif name == "metagrpcred" % meta hierarchy for credit datasets
@@ -86,9 +86,16 @@ function layout = Layout(name)
         layout.metagroup = struct(graph_type=GRF.SELF, edge_type_filter=[], encode_spec='max');
         layout.connec = 'sense-->tier1,tier1-->group,group-->meta,meta-->metagroup,metagroup-->out';
     elseif name == "clevr"
-        layout.connectedpart = struct(graph_type=GRF.GRID2D, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
-        layout.meta          = struct(graph_type=GRF.FULL,   edge_type_filter=[EDG.AND],             encode_spec='energy');
+        layout.connectedpart = struct(graph_type=GRF.GRID2DMULTICHAN, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
+        layout.meta          = struct(graph_type=GRF.FULL,            edge_type_filter=[EDG.AND],             encode_spec='energy');
         layout.connec = 'sense-->connectedpart,connectedpart-->meta,meta-->out';
+    elseif name == "clevrpos1"
+        layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.AND], encode_spec='energy');
+        layout.connec = 'sense-->tier1,tier1-->out';
+    elseif name == "clevrpos2"
+        layout.tier1 = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.NCONV,EDG.NIMPL], encode_spec='energy');
+        layout.meta  = struct(graph_type=GRF.FULL, edge_type_filter=[EDG.AND],             encode_spec='energy');
+        layout.connec = 'sense-->tier1,tier1-->meta,meta-->out';
     else
         error("unexpected name");
     end

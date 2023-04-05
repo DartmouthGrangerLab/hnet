@@ -4,20 +4,23 @@
 %   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
-%   graphType - scalar (GRF enum)
-%   n_nodes - scalar (int-valued numeric) number of nodes
-%   imgsz   - OPTIONAL unless graphType == GRF.GRID2D or graphType == GRF.GRID2DMULTICHAN
+%   compbank - scalar (ComponentBank)
+%   n_nodes  - scalar (int-valued numeric) number of nodes
+%   imgsz    - OPTIONAL unless graphType == GRF.GRID2D or graphType == GRF.GRID2DMULTICHAN
 % RETURNS
-%   didx - n_edges x 2 (numeric index) pixel index for each edge
-function didx = NeighborPairs(graphType, n_nodes, imgsz)
+%   didx        - n_edges x 2 (numeric index) pixel index for each edge
+%   isEdgeRight - n_edges x 1 (logical)
+%   isEdgeDown  - n_edges x 1 (logical)
+%   nodeChan    - n_nodes x 1 (int-valued numeric)
+function [didx,isEdgeRight,isEdgeDown,nodeChan] = NeighborPairs(graphType, n_nodes, imgsz)
     arguments
         graphType(1,1) GRF, n_nodes(1,1), imgsz
     end
-
+    nodeChan = ones(n_nodes, 1);
     if graphType == GRF.GRID1D
         didx = neighbor_pairs_linear(n_nodes);
     elseif graphType == GRF.GRID2D
-        didx = neighbor_pairs_2d([sqrt(n_nodes),sqrt(n_nodes),1]); % for rectangular 1-channel images
+        didx = neighbor_pairs_2d(imgsz); % for rectangular 1-channel images
     elseif graphType == GRF.GRID2DMULTICHAN
         [didx,nodeChan] = neighbor_pairs_2d_multichan(imgsz); % for rectangular n-channel images
     elseif graphType == GRF.FULL
@@ -26,6 +29,15 @@ function didx = NeighborPairs(graphType, n_nodes, imgsz)
         didx = neighbor_pairs_self(n_nodes);
     else
         error("unexpected graphType");
+    end
+    
+    if graphType == GRF.GRID2D || graphType == GRF.GRID2DMULTICHAN
+        [row,col] = PixelRowCol(imgsz);
+        isEdgeRight = col(didx(:,1)) ~= col(didx(:,2));
+        isEdgeDown = row(didx(:,1)) ~= row(didx(:,2));
+    else
+        isEdgeRight = false(size(didx, 1), 1);
+        isEdgeDown = false(size(didx, 1), 1);
     end
 end
 
@@ -65,10 +77,10 @@ function [didx,nodeChan] = neighbor_pairs_2d_multichan(imgsz)
     n_nodes_per_chan = imgsz(1) * imgsz(2);
     n_edges_per_chan = size(didx, 1);
     didx = repmat(didx, [imgsz(3),1]);
-    nodeChan = ones(n_edges_per_chan*imgsz(3), 1);
+    nodeChan = ones(n_nodes_per_chan*imgsz(3), 1);
     for i = 2 : imgsz(3) % for each channel > 1
-        didx((i-1)*n_nodes_per_chan + (1:n_nodes_per_chan),:) = didx((i-1)*n_nodes_per_chan + (1:n_nodes_per_chan),:) + n_nodes_per_chan;
-        nodeChan((i-1)*n_edges_per_chan + (1:n_edges_per_chan)) = i;
+        didx((i-1)*n_edges_per_chan + (1:n_edges_per_chan),:) = didx((i-1)*n_edges_per_chan + (1:n_edges_per_chan),:) + n_nodes_per_chan;
+        nodeChan((i-1)*n_nodes_per_chan + (1:n_nodes_per_chan)) = i;
     end
     
     % NOT connecting across channels

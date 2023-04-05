@@ -4,19 +4,20 @@
 %   Rodriguez A, Bowen EFW, Granger R (2022) https://github.com/DartmouthGrangerLab/hnet
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
-%   dat - scalar (Dataset)
+%   label_onehot - n x n_classes (logical)
 %   code - n_cmp x n_pts (numeric or logical) component code
 % RETURNS
 %   hist - n_classes x n_cmp (numeric)
-function hist = ClassHistogram(dat, code)
+function hist = ClassHistogram(label_onehot, code)
     arguments
-        dat(1,1) Dataset, code(:,:)
+        label_onehot(:,:) {mustBeLogical}, code(:,:)
     end
     n_cmp = size(code, 1);
-
-    hist = zeros(n_cmp, dat.n_classes); % will be transposed later
-    for c = 1 : dat.n_classes
-        hist(:,c) = sum(code(:,dat.label_idx == c), 2);
+    n_classes = size(label_onehot, 2);
+    
+    hist = zeros(n_cmp, n_classes); % will be transposed later
+    for c = 1 : n_classes
+        hist(:,c) = sum(code(:,label_onehot(:,c)), 2);
     end
     hist = hist';
     hist = hist ./ max(abs(hist), [], 1); % normalize to range -1 --> 1

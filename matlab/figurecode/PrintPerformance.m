@@ -5,36 +5,31 @@
 %   Bowen, EFW, Granger, R, Rodriguez, A (2023). A logical re-conception of neural networks: Hamiltonian bitwise part-whole architecture. Presented at AAAI EDGeS 2023.
 % INPUTS
 %   model
-%   trnDataset - scalar (Dataset)
-%   tstDataset - scalar (Dataset)
-%   trn_comp_code
-%   tst_comp_code
+%   trnpixels     - n_px x n_trn (logical)
+%   trnlabelidx   - n_trn x 1 (numeric index)
+%   tstpixels     - n_px x n_tst (logical)
+%   tstlabelidx   - n_tst x 1 (numeric index)
+%   trndat        - scalar (Dataset)
+%   tstdat        - scalar (Dataset)
+%   trn_comp_code - ? x ? (?)
+%   tst_comp_code - ? x ? (?)
 %   modelName
 %   append - (char) text to append to output file names
-function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst_comp_code, modelName, append)
-    arguments   
-        model         (1,1) Model
-        trnDataset    (1,1) Dataset
-        tstDataset    (1,1) Dataset
-        trn_comp_code (:,:)
-        tst_comp_code (:,:)
-        modelName     (1,:) char
-        append        (1,:) char
+function [] = PrintPerformance(model, trnpixels, trnlabelidx, tstpixels, tstlabelidx, trn_comp_code, tst_comp_code, modelName, append)
+    arguments
+        model(1,1) Model, trnpixels(:,:), trnlabelidx(:,1), tstpixels(:,:), tstlabelidx(:,1), trn_comp_code(:,:), tst_comp_code(:,:), modelName(1,1) string, append(1,1) string
     end
     senseDidx = model.compbanks.(model.tier1_compbank_names{1}).edge_endnode_idx;
 
     edgeTypeFilter = model.compbanks.(model.tier1_compbank_names{1}).edge_type_filter;
-
-    trnlabelidx = trnDataset.label_idx;
-    tstlabelidx = tstDataset.label_idx;
     
-    trnSense = Edge2Logical(GetEdgeStates(trnDataset.pixels, senseDidx, edgeTypeFilter));
-    tstSense = Edge2Logical(GetEdgeStates(tstDataset.pixels, senseDidx, edgeTypeFilter));
+    trnSense = Edge2Logical(GetEdgeStates(trnpixels, senseDidx, edgeTypeFilter));
+    tstSense = Edge2Logical(GetEdgeStates(tstpixels, senseDidx, edgeTypeFilter));
     
     classifier = 'knn';
     params = struct(k=1, distance='dot');
-    trntrnInAcc = ml.ClassifyHold1Out(trnDataset.pixels', trnlabelidx, classifier, params, true);
-    [trntstInAcc,trntstInPred] = ml.Classify(trnDataset.pixels', trnlabelidx, tstDataset.pixels', tstlabelidx, classifier, params, true);
+    trntrnInAcc = ml.ClassifyHold1Out(trnpixels', trnlabelidx, classifier, params, true);
+    [trntstInAcc,trntstInPred] = ml.Classify(trnpixels', trnlabelidx, tstpixels', tstlabelidx, classifier, params, true);
 
     trntrnEdgeAcc = ml.ClassifyHold1Out(trnSense', trnlabelidx, classifier, params, true);
     trntstEdgeAcc = ml.Classify(trnSense', trnlabelidx, tstSense', tstlabelidx, classifier, params, true);
@@ -62,13 +57,13 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
         pixel_trn_acc=round(trntrnInAcc, 4),...
         timestamp=char(datetime("now")),...
         p_us_vs_in=p_us_vs_in);
-    io.InjectRowIntoTableFile(Config.OUT_DIR, char(['acc_1nn_',append,'.csv']), 'analysis', s);
+    io.InjectRowIntoTableFile(Config.OUT_DIR, char("acc_1nn_" + append + ".csv"), 'analysis', s);
     
     
     classifier = 'nbfast';
     params = struct(distribution='bern');
-    trntrnInAcc = ml.Classify(trnDataset.pixels', trnlabelidx, trnDataset.pixels', trnlabelidx, classifier, params, true);
-    [trntstInAcc,trntstInPred] = ml.Classify(trnDataset.pixels', trnlabelidx, tstDataset.pixels', tstlabelidx, classifier, params, true);
+    trntrnInAcc = ml.Classify(trnpixels', trnlabelidx, trnpixels', trnlabelidx, classifier, params, true);
+    [trntstInAcc,trntstInPred] = ml.Classify(trnpixels', trnlabelidx, tstpixels', tstlabelidx, classifier, params, true);
     
     trntrnEdgeAcc = ml.Classify(trnSense', trnlabelidx, trnSense', trnlabelidx, classifier, params, true);
     trntstEdgeAcc = ml.Classify(trnSense', trnlabelidx, tstSense', tstlabelidx, classifier, params, true);
@@ -96,13 +91,13 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
         pixel_trn_acc=round(trntrnInAcc, 4),...
         timestamp=char(datetime("now")),...
         p_us_vs_in=p_us_vs_in);
-    io.InjectRowIntoTableFile(Config.OUT_DIR, char(['acc_nb_',append,'.csv']), 'analysis', s);
+    io.InjectRowIntoTableFile(Config.OUT_DIR, char("acc_nb_" + append + ".csv"), 'analysis', s);
     
 
     classifier = 'svmliblinear';
     params = struct(regularization_lvl=1);
-    trntrnInAcc = ml.Classify(trnDataset.pixels', trnlabelidx, trnDataset.pixels', trnlabelidx, classifier, params, true);
-    [trntstInAcc,trntstInPred] = ml.Classify(trnDataset.pixels', trnlabelidx, tstDataset.pixels', tstlabelidx, classifier, params, true);
+    trntrnInAcc = ml.Classify(trnpixels', trnlabelidx, trnpixels', trnlabelidx, classifier, params, true);
+    [trntstInAcc,trntstInPred] = ml.Classify(trnpixels', trnlabelidx, tstpixels', tstlabelidx, classifier, params, true);
 
     trntrnEdgeAcc = ml.Classify(trnSense', trnlabelidx, trnSense', trnlabelidx, classifier, params, true);
     trntstEdgeAcc = ml.Classify(trnSense', trnlabelidx, tstSense', tstlabelidx, classifier, params, true);
@@ -125,7 +120,7 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
         pixel_trn_acc=round(trntrnInAcc, 4),...
         timestamp=char(datetime("now")),...
         p_us_vs_in=p_us_vs_in);
-    io.InjectRowIntoTableFile(Config.OUT_DIR, char(['acc_svm_',append,'.csv']), 'analysis', s);
+    io.InjectRowIntoTableFile(Config.OUT_DIR, char("acc_svm_" + append + ".csv"), 'analysis', s);
     
     
     classifier = 'patternnet';
@@ -148,7 +143,7 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
             trntrnEdgeAcc(i) = NaN;
             trntstEdgeAcc(i) = NaN;
         end
-
+        
         try
             trntrnAcc(i) = ml.Classify(trn_comp_code', trnlabelidx, trn_comp_code', trnlabelidx, classifier, [], true);
             [trntstAcc(i),trntstPred] = ml.Classify(trn_comp_code', trnlabelidx, tst_comp_code', tstlabelidx, classifier, [], true);
@@ -178,5 +173,5 @@ function [] = PrintPerformance(model, trnDataset, tstDataset, trn_comp_code, tst
         pixel_trn_acc=round(trntrnInAcc, 4),...
         timestamp=char(datetime("now")),...
         p_us_vs_in_mean=p_us_vs_in_mean);
-    io.InjectRowIntoTableFile(Config.OUT_DIR, char(['acc_net_',append,'.csv']), 'analysis', s);
+    io.InjectRowIntoTableFile(Config.OUT_DIR, char("acc_net_" + append + ".csv"), 'analysis', s);
 end
