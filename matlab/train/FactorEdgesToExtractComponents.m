@@ -98,6 +98,7 @@ end
 function relations = Factor(alg, edges, k, edgeTypeFilter)
     assert(k > 1);
     [n_edges,n_pts] = size(edges);
+    t = tic();
     
     if startsWith(alg, "ica")
         if alg == "ica"
@@ -159,6 +160,7 @@ function relations = Factor(alg, edges, k, edgeTypeFilter)
             end
         end
     end
+    disp("FactorEdgesToExtractComponents.m's Factor() took " + string(toc(t)) + " s");
 end
 
 
@@ -167,7 +169,8 @@ function relations = CropLeastCoOccurringEdges(relations, edges, max_edges_per_c
     nEdgesPerCmp = sum(relations ~= EDG.NULL, 1); % 1 x n_cmp
     nToRemove = nEdgesPerCmp - max_edges_per_cmp; % 1 x n_cmp
     disp("cropping " + num2str(sum(nToRemove > 0)) + " components for having " + num2str(sum(nToRemove(nToRemove > 0))) + " too many edges in total");
-
+    t = tic();
+    
     if IsJuliaConfigured() && any(nToRemove > 0)
         relations = EDG(Julia(fullfile(fileparts(mfilename('fullpath')), '..', 'julia_code.jl'), 'crop_least_co_occurring_edges', uint8(relations), uint8(edges), nToRemove(:)));
         % above confirmed identical to below, 2x as fast (for long runs) but requires a bunch of julia setup
@@ -187,4 +190,5 @@ function relations = CropLeastCoOccurringEdges(relations, edges, max_edges_per_c
             end
         end
     end
+    disp("FactorEdgesToExtractComponents.m's CropLeastCoOccurringEdges() took " + string(toc(t)) + " s");
 end

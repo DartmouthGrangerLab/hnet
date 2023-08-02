@@ -15,22 +15,35 @@ function energies = Energy(compbank, data)
     end
     n_pts = size(data, 2);
     
-    do_h_mode = true;
-    
     energies = zeros(compbank.n_cmp, n_pts); % yes, double
     
     % match completely
     %   e.g.
     %   10 vs 10 = best energy
     %   all others = equally bad energy
-    if do_h_mode
-        data = double(data); % must be double if H is sparse (matlab technical limitation)
+    if Config.DO_H_MODE
+        data = sparse(double(data)); % must be double if H is sparse (matlab technical limitation)
         
+        t1 = tic();
+        H = cell(compbank.n_cmp, 1);
+        k = zeros(compbank.n_cmp, 1);
         for i = 1 : compbank.n_cmp
-            [H,k] = GenerateCompositeH(compbank, i);
-
-            energies(i,:) = dot(data, H * data) + k; % faster, identical to below
+            [H{i},k(i)] = GenerateCompositeH(compbank, i);
         end
+        disp("Energy.m: hamiltonian mode H generation took " + string(toc(t1)) + " s");
+
+        t2 = tic();
+        for i = 1 : compbank.n_cmp
+            energies(i,:) = dot(data, H{i} * data) + k(i);
+        end
+        disp("Energy.m: hamiltonian mode energy eqn took " + string(toc(t2)) + " s");
+        
+        % for i = 1 : compbank.n_cmp
+        %     [H,k] = GenerateCompositeH(compbank, i);
+        % 
+        %     energies(i,:) = dot(data, H * data) + k;
+        % end
+
         energies = max(energies(:)) - energies; % convert from 0 = best to larger = better (similarity)
     else
         edgeData = GetEdgeStates(data, compbank.edge_endnode_idx, compbank.edge_type_filter); % convert data to edges

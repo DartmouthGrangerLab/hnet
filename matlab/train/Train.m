@@ -23,6 +23,7 @@ function model = Train(cfg, layout, dat)
         step = strsplit(steps{ii}, '.'); % <bank>.<task>.<taskparams>
         bank = step{1};
         task = step{2};
+        t = tic();
 
         if task == "memorize"
             model = model.InsertComponents(bank, dat.n_pts);
@@ -54,5 +55,6 @@ function model = Train(cfg, layout, dat)
         else
             error("unexpected task " + task);
         end
+        disp("Train.m: " + upper(task) + " took " + string(toc(t)) + " s");
     end
 end

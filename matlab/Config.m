@@ -11,6 +11,7 @@ classdef Config
         MIN_EDGES_PER_CMP = 4 % minimum number of edges per component
         DO_CACHE = false
         DO_INVERT_COLORS = true % invert colors of nodes (true produces black text on white for mnist)
+        DO_H_MODE = true % if true, generate and use Hamiltonians in Energy.m; if false, convert to a boolean feed-forward network in Energy.m
     end
 
 
