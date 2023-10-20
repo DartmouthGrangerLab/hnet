@@ -7,6 +7,7 @@
 % currently, we one-to-one connectivity (compbanks{1} is the input to compbanks{2} etc)
 classdef Model
     properties
+        connec char % (char) just for printing
         g (1,1) digraph = digraph() % contains the connections amongst component banks
         compbanks (1,1) struct = struct() % each field a ComponentBank
     end
@@ -27,6 +28,7 @@ classdef Model
             if ~exist("imgSz", "var")
                 imgSz = [];
             end
+            obj.connec = layout.connec;
             obj.g = addnode(obj.g, struct2table(struct(Name='sense', n_out=n_sense)));
             obj.g = addnode(obj.g, struct2table(struct(Name='label', n_out=n_label)));
             

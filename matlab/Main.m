@@ -8,6 +8,7 @@
 %   frontendSpec - (char) dataset and frontend name and parameters (see dataset.m)
 %   trnSpec      - (char) training specification string
 % USAGE
+%   below calls are to be executed from within the "matlab" directory
 %   Main("metacred",  "ucicreditgerman", "tier1.memorize-->tier1.extractcorr.icacropsome.100.50.unsupsplit-->meta.extractcorr.kmeans.10.50.unsupsplit");
 %   Main("groupedimg", "mnistpy.128", "connectedpart.memorize-->connectedpart.extractconnec.25-->connectedpart.transl.2");
 %   Main("clevrpos1", "clevrpossimple", "tier1.memorize");
@@ -64,7 +65,14 @@ function [] = Main(modelName, frontendSpec, trnSpec)
     else
         model = Train(cfg, layout, trndat); % without caching
     end
-    
+
+    %% export trained model
+    try
+        Export2JSON(trndat, tstdat, model, cfg.frontend_spec, cfg.model_name + "_" + cfg.frontend_spec + "_" + strrep(cfg.trn_spec, "-->", "-"));
+    catch
+        disp("issue exporting to json... moving on");
+    end
+
     SetRNG(cfg); % reset RNG after training
     
     %% encode
